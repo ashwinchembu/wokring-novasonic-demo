@@ -9,7 +9,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV /Users/ashwin/zs/ai-demo-3/backend/.venv312
+setenv VIRTUAL_ENV /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"

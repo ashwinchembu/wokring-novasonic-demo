@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Sonic Voice Test (Improved)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.talking {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #startBtn {
+            background: #28a745;
+            color: white;
+        }
+        
+        #stopBtn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .transcript-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .transcript-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .transcript-entry.user {
+            background: #e3f2fd;
+            margin-left: 40px;
+        }
+        
+        .transcript-entry.assistant {
+            background: #f3e5f5;
+            margin-right: 40px;
+        }
+        
+        .speaker {
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+        
+        .user .speaker {
+            color: #1976d2;
+        }
+        
+        .assistant .speaker {
+            color: #7b1fa2;
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 100px;
+            background: #000;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info strong {
+            color: #856404;
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .debug {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Nova Sonic Voice Test</h1>
+        <p class="subtitle">Improved Audio Playback</p>
+        
+        <div id="status" class="status disconnected">
+            Not Connected
+        </div>
+        
+        <div class="info">
+            <strong>Instructions:</strong><br>
+            1. Click "Start Conversation"<br>
+            2. Allow microphone access<br>
+            3. Speak naturally<br>
+            4. Listen for smooth AI responses!
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" onclick="startConversation()">Start Conversation</button>
+            <button id="stopBtn" onclick="stopConversation()" disabled>Stop</button>
+        </div>
+        
+        <canvas id="visualizer" class="visualizer"></canvas>
+        
+        <div class="transcript-container" id="transcript">
+            <div style="text-align: center; color: #999;">
+                Transcripts will appear here...
+            </div>
+        </div>
+        
+        <div id="debug" class="debug" style="display: none;"></div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let audioContext = null;
+        let mediaStream = null;
+        let processor = null;
+        let eventSource = null;
+        let isRecording = false;
+        
+        // Improved audio playback with scheduled chunks
+        let audioQueue = [];
+        let isPlayingAudio = false;
+        let currentAudioSource = null;
+        let nextPlayTime = 0;
+        
+        // Track transcripts to prevent duplication
+        let lastTranscripts = new Map(); // speaker -> last text
+        
+        const API_URL = 'http://localhost:8000';
+        const statusDiv = document.getElementById('status');
+        const transcriptDiv = document.getElementById('transcript');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const canvas = document.getElementById('visualizer');
+        const canvasCtx = canvas.getContext('2d');
+        const debugDiv = document.getElementById('debug');
+        
+        let debugMode = true; // Set to false to hide debug info
+        
+        function debug(msg) {
+            if (debugMode) {
+                console.log(msg);
+                debugDiv.textContent = msg;
+                debugDiv.style.display = 'block';
+            }
+        }
+        
+        // Audio visualization
+        function drawVisualizer(dataArray) {
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
+            
+            canvasCtx.fillStyle = '#000';
+            canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+            
+            const barWidth = (WIDTH / dataArray.length) * 2.5;
+            let x = 0;
+            
+            for (let i = 0; i < dataArray.length; i++) {
+                const barHeight = (dataArray[i] / 255) * HEIGHT;
+                
+                const r = barHeight + 25;
+                const g = 50;
+                const b = 250;
+                
+                canvasCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+                
+                x += barWidth + 1;
+            }
+        }
+        
+        function updateStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function addTranscript(speaker, text) {
+            // Check for duplicate transcript
+            if (lastTranscripts.get(speaker) === text) {
+                debug(`Skipping duplicate transcript from ${speaker}`);
+                return;
+            }
+            
+            // Update last transcript tracker
+            lastTranscripts.set(speaker, text);
+            
+            if (transcriptDiv.children.length === 1 && 
+                transcriptDiv.children[0].textContent.includes('Transcripts will appear')) {
+                transcriptDiv.innerHTML = '';
+            }
+            
+            const entry = document.createElement('div');
+            entry.className = `transcript-entry ${speaker}`;
+            entry.innerHTML = `
+                <div class="speaker">${speaker}</div>
+                <div>${text}</div>
+            `;
+            transcriptDiv.appendChild(entry);
+            transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+        }
+        
+        // Improved audio playback with scheduled timing for smooth playback
+        async function playAudioChunk(base64Audio) {
+            audioQueue.push(base64Audio);
+            
+            if (!isPlayingAudio) {
+                isPlayingAudio = true;
+                updateStatus('🔊 AI is speaking...', 'talking');
+                // Reset play time to current time
+                nextPlayTime = audioContext.currentTime;
+                processAudioQueue();
+            }
+        }
+        
+        async function processAudioQueue() {
+            // Process all chunks in queue
+            while (audioQueue.length > 0) {
+                const base64Audio = audioQueue.shift();
+                
+                try {
+                    // Decode base64 to binary
+                    const binaryString = atob(base64Audio);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    // Convert to Int16Array (PCM data)
+                    const pcmData = new Int16Array(bytes.buffer);
+                    
+                    // Create audio buffer
+                    const audioBuffer = audioContext.createBuffer(1, pcmData.length, 24000);
+                    const channelData = audioBuffer.getChannelData(0);
+                    
+                    // Normalize PCM data
+                    for (let i = 0; i < pcmData.length; i++) {
+                        channelData[i] = Math.max(-1, Math.min(1, pcmData[i] / 32768.0));
+                    }
+                    
+                    // Create and play source with scheduled timing
+                    const source = audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    
+                    // Add a gain node for volume control
+                    const gainNode = audioContext.createGain();
+                    gainNode.gain.value = 1.0;
+                    
+                    source.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // Schedule this chunk to play at nextPlayTime
+                    // If nextPlayTime is in the past, play immediately
+                    const playTime = Math.max(nextPlayTime, audioContext.currentTime);
+                    source.start(playTime);
+                    
+                    // Update next play time (add buffer duration)
+                    const bufferDuration = audioBuffer.duration;
+                    nextPlayTime = playTime + bufferDuration;
+                    
+                    debug(`Scheduled audio: ${pcmData.length} samples at ${playTime.toFixed(3)}s, duration: ${bufferDuration.toFixed(3)}s`);
+                    
+                    // Only keep reference to last source
+                    currentAudioSource = source;
+                    
+                    // If this is the last chunk, set up onended callback
+                    if (audioQueue.length === 0) {
+                        source.onended = () => {
+                            // Wait a bit to see if more chunks arrive
+                            setTimeout(() => {
+                                if (audioQueue.length === 0) {
+                                    isPlayingAudio = false;
+                                    currentAudioSource = null;
+                                    if (isRecording) {
+                                        updateStatus('🎤 Listening... Speak now!', 'talking pulse');
+                                    }
+                                } else {
+                                    processAudioQueue();
+                                }
+                            }, 50);
+                        };
+                    }
+                    
+                } catch (error) {
+                    console.error('Error playing audio:', error);
+                    debug(`Audio error: ${error.message}`);
+                }
+                
+                // Small delay between scheduling chunks to prevent overwhelming the system
+                if (audioQueue.length > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+            }
+        }
+        
+        async function startConversation() {
+            try {
+                // Clear transcript tracking
+                lastTranscripts.clear();
+                
+                updateStatus('Creating session...', 'connected');
+                
+                // Create session
+                const response = await fetch(`${API_URL}/session/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_prompt: 'You are a friendly AI assistant. Keep your responses concise and natural, around 2-3 sentences.'
+                    })
+                });
+                
+                const data = await response.json();
+                sessionId = data.session_id;
+                
+                debug(`Session created: ${sessionId}`);
+                
+                // Initialize audio context
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                    sampleRate: 24000
+                });
+                
+                // Resume audio context if suspended
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                // Get microphone
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        sampleRate: 16000,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                
+                // Setup audio processing
+                const source = audioContext.createMediaStreamSource(mediaStream);
+                processor = audioContext.createScriptProcessor(2048, 1, 1); // Smaller buffer for less latency
+                
+                let analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                function visualize() {
+                    if (!isRecording) return;
+                    requestAnimationFrame(visualize);
+                    analyser.getByteFrequencyData(dataArray);
+                    drawVisualizer(dataArray);
+                }
+                
+                let audioChunkCount = 0;
+                
+                processor.onaudioprocess = async (e) => {
+                    if (!isRecording) return;
+                    
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    const pcmData = new Int16Array(inputData.length);
+                    
+                    for (let i = 0; i < inputData.length; i++) {
+                        pcmData[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768));
+                    }
+                    
+                    // Convert to base64
+                    const base64 = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)));
+                    
+                    // Send to server
+                    try {
+                        await fetch(`${API_URL}/audio/chunk`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                session_id: sessionId,
+                                audio_data: base64,
+                                format: 'pcm',
+                                sample_rate: 16000,
+                                channels: 1
+                            })
+                        });
+                        audioChunkCount++;
+                        if (audioChunkCount % 20 === 0) {
+                            debug(`Sent ${audioChunkCount} audio chunks`);
+                        }
+                    } catch (err) {
+                        console.error('Error sending audio:', err);
+                    }
+                };
+                
+                // Start event stream
+                eventSource = new EventSource(`${API_URL}/events/stream/${sessionId}`);
+                
+                eventSource.addEventListener('transcript', (e) => {
+                    const data = JSON.parse(e.data);
+                    addTranscript(data.speaker, data.text);
+                    debug(`Transcript: ${data.speaker} - ${data.text.substring(0, 50)}...`);
+                });
+                
+                eventSource.addEventListener('audio', (e) => {
+                    const data = JSON.parse(e.data);
+                    playAudioChunk(data.audio_data);
+                });
+                
+                eventSource.addEventListener('content_start', (e) => {
+                    const data = JSON.parse(e.data);
+                    debug(`Content start: ${data.role}`);
+                });
+                
+                eventSource.addEventListener('content_end', (e) => {
+                    debug('Content end');
+                });
+                
+                eventSource.onerror = (err) => {
+                    console.error('EventSource error:', err);
+                };
+                
+                isRecording = true;
+                visualize();
+                
+                updateStatus('🎤 Listening... Speak now!', 'talking pulse');
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+                debug('Ready! Start speaking...');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                updateStatus('Error: ' + error.message, 'disconnected');
+                debug(`Error: ${error.message}`);
+            }
+        }
+        
+        async function stopConversation() {
+            isRecording = false;
+            
+            // Stop current audio
+            if (currentAudioSource) {
+                try {
+                    currentAudioSource.stop();
+                } catch (e) {
+                    // Already stopped
+                }
+                currentAudioSource = null;
+            }
+            
+            // Clear audio queue and playback state
+            audioQueue = [];
+            isPlayingAudio = false;
+            nextPlayTime = 0;
+            
+            // Clear transcript tracking
+            lastTranscripts.clear();
+            
+            if (processor) {
+                processor.disconnect();
+            }
+            
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+            
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            if (sessionId) {
+                try {
+                    await fetch(`${API_URL}/audio/end`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ session_id: sessionId })
+                    });
+                    
+                    await fetch(`${API_URL}/session/${sessionId}`, {
+                        method: 'DELETE'
+                    });
+                } catch (err) {
+                    console.error('Error ending session:', err);
+                }
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+            }
+            
+            updateStatus('Conversation ended', 'disconnected');
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            // Clear canvas
+            canvasCtx.fillStyle = '#000';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            debug('Stopped');
+        }
+        
+        // Initialize canvas size
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    </script>
+</body>
+</html>

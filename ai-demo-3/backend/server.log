@@ -1,0 +1,128 @@
+INFO:     Started server process [62382]
+INFO:     Waiting for application startup.
+2025-10-27 02:17:07,005 - app.main - INFO - Starting AI Demo 3 Backend
+2025-10-27 02:17:07,005 - app.services.session_manager - INFO - Cleanup task started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-10-27 02:17:14,177 - app.guardrails_loader - INFO - GuardrailsLoader initialized with file: /Users/ashwin/zs/ai-demo-3/docs/guardrails.xlsx
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO - ✅ Loaded 11 rules (11 enabled) from guardrails.xlsx
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - PHI_HIPAA: 2 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - OFF_LABEL: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - AE_DETECTION: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - COMPARATIVE_CLAIM: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - PRICING_REBATE: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - UNAPPROVED_INDICATION: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - GUARANTEE: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - CLINICAL_GUIDANCE: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - LANGUAGE_EN_ONLY: 1 enabled rule(s)
+2025-10-27 02:17:14,279 - app.guardrails_loader - INFO -    - PII_PROMPT: 1 enabled rule(s)
+INFO:     127.0.0.1:51674 - "GET /admin/guardrails/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51840 - "GET /test-v2 HTTP/1.1" 200 OK
+2025-10-27 02:17:52,307 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: bbcddbc2-8ea9-4a76-8702-b7bd35109ec4
+2025-10-27 02:17:52,310 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-10-27 02:17:52,310 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-10-27 02:17:52,318 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-10-27 02:17:52,323 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-10-27 02:17:52,324 - app.services.session_manager - INFO - Session created: bbcddbc2-8ea9-4a76-8702-b7bd35109ec4
+2025-10-27 02:17:52,324 - app.main - INFO - Session started: bbcddbc2-8ea9-4a76-8702-b7bd35109ec4
+INFO:     127.0.0.1:51840 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51840 - "GET /events/stream/bbcddbc2-8ea9-4a76-8702-b7bd35109ec4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-10-27 02:17:54,998 - app.services.nova_sonic_client - INFO - User: yeah yeah
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-10-27 02:17:55,362 - app.services.nova_sonic_client - INFO - Assistant: Got it! What's on your mind today?  Anything you'd like to chat about?
+2025-10-27 02:17:55,363 - app.guardrails - INFO - GuardrailsEngine initialized
+2025-10-27 02:17:55,371 - app.guardrails_audit - INFO - GuardrailsAuditLogger initialized: /Users/ashwin/zs/ai-demo-3/backend/logs/guardrails
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51841 - "POST /audio/end HTTP/1.1" 200 OK
+2025-10-27 02:17:59,557 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-10-27 02:17:59,558 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-10-27 02:17:59,559 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-10-27 02:17:59,560 - app.services.session_manager - INFO - Session ended: bbcddbc2-8ea9-4a76-8702-b7bd35109ec4
+INFO:     127.0.0.1:51841 - "DELETE /session/bbcddbc2-8ea9-4a76-8702-b7bd35109ec4 HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/awscrt/aio/http.py", line 298, in _on_body
+    future.set_result(chunk)
+  File "/usr/local/Cellar/python@3.12/3.12.9/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x112da1eb0 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)

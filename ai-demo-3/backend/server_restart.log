@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/app/main.py", line 20, in <module>
+    from app.config import settings
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/app/config.py", line 7, in <module>
+    from pydantic_settings import BaseSettings
+  File "/opt/anaconda3/lib/python3.11/site-packages/pydantic_settings/__init__.py", line 1, in <module>
+    from .main import BaseSettings, CliApp, SettingsConfigDict
+  File "/opt/anaconda3/lib/python3.11/site-packages/pydantic_settings/main.py", line 12, in <module>
+    from pydantic._internal._signature import _field_name_for_signature
+ModuleNotFoundError: No module named 'pydantic._internal._signature'

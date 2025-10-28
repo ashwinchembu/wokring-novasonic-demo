@@ -397,6 +397,10 @@ class NovaSonicClient:
                             if 'event' in json_data:
                                 await self._handle_response_event(json_data['event'])
                             
+                            # Debug: Log when pushing to output_subject
+                            event_type = list(json_data.get('event', {}).keys())[0] if 'event' in json_data else 'unknown'
+                            logger.debug(f"Pushing event to output_subject: {event_type}")
+                            
                             self.output_subject.on_next(json_data)
                         except json.JSONDecodeError:
                             self.output_subject.on_next({"raw_data": response_data})
@@ -454,6 +458,7 @@ class NovaSonicClient:
     async def get_events_stream(self) -> AsyncIterator[dict]:
         """Get an async iterator of events from the output subject."""
         queue = asyncio.Queue()
+        subscription = None
         
         def on_next(event):
             asyncio.create_task(queue.put(event))
@@ -464,17 +469,23 @@ class NovaSonicClient:
         def on_completed():
             asyncio.create_task(queue.put(None))
         
-        self.output_subject.subscribe(
-            on_next=on_next,
-            on_error=on_error,
-            on_completed=on_completed
-        )
-        
-        while True:
-            event = await queue.get()
-            if event is None:
-                break
-            yield event
+        try:
+            subscription = self.output_subject.subscribe(
+                on_next=on_next,
+                on_error=on_error,
+                on_completed=on_completed
+            )
+            
+            while True:
+                event = await queue.get()
+                if event is None:
+                    break
+                yield event
+        finally:
+            # Clean up subscription when stream closes
+            if subscription is not None:
+                subscription.dispose()
+                logger.debug("Event stream subscription disposed")
     
     async def close(self):
         """Close the stream properly."""

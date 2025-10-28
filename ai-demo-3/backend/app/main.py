@@ -209,13 +209,33 @@ async def stream_events(session_id: str):
     if not client:
         raise HTTPException(status_code=404, detail="Session not found")
     
+    # Check if there's already an active stream for this session
+    if session_manager.has_active_stream(session_id):
+        logger.warning(f"Attempt to create duplicate stream for session {session_id}")
+        raise HTTPException(
+            status_code=409, 
+            detail="A stream is already active for this session. Close the existing connection first."
+        )
+    
     async def event_generator() -> AsyncIterator[dict]:
         """Generate SSE events from Nova Sonic output."""
+        # Track seen events to prevent duplicates
+        seen_event_ids = set()
+        event_counter = 0
+        
         try:
+            # Mark this stream as active
+            session_manager.mark_stream_active(session_id)
+            logger.info(f"SSE stream started for session {session_id}")
+            
             # Send audio content start event when client connects
             await client.send_audio_content_start_event()
             
             async for event in client.get_events_stream():
+                event_counter += 1
+                # Create a unique ID for this event based on its content
+                event_id = f"{event_counter}_{id(event)}"
+                logger.debug(f"[{session_id}] Processing event #{event_counter}, id={event_id}")
                 await session_manager.update_session_activity(session_id)
                 
                 if not event:
@@ -242,6 +262,8 @@ async def stream_events(session_id: str):
                 if 'textOutput' in event_data:
                     text_content = event_data['textOutput']['content']
                     role = client.role or 'assistant'
+                    
+                    logger.debug(f"[{session_id}] Received textOutput: role={role}, text={text_content[:50]}...")
                     
                     # Skip interrupted messages
                     if '{ "interrupted" : true }' not in text_content:
@@ -286,7 +308,18 @@ async def stream_events(session_id: str):
                                     "original_text_hash": hashlib.sha256(text_content.encode()).hexdigest()
                                 })
                         
+                        # Create a content hash for deduplication
+                        content_hash = hashlib.sha256(f"{role}:{final_text}".encode()).hexdigest()[:16]
+                        
+                        # Check if we've already seen this exact transcript
+                        if content_hash in seen_event_ids:
+                            logger.warning(f"[{session_id}] DUPLICATE DETECTED! Skipping: {role.lower()} - {final_text[:50]}...")
+                            continue
+                        
+                        seen_event_ids.add(content_hash)
+                        
                         # Emit transcript (original or compliant replacement)
+                        logger.info(f"[{session_id}] YIELDING transcript (hash={content_hash}): {role.lower()} - {final_text[:50]}...")
                         yield {
                             "event": "transcript",
                             "data": json.dumps({
@@ -360,6 +393,10 @@ async def stream_events(session_id: str):
                     "timestamp": datetime.utcnow().isoformat()
                 })
             }
+        finally:
+            # Always mark stream as inactive when generator exits
+            session_manager.mark_stream_inactive(session_id)
+            logger.info(f"SSE stream ended for session {session_id}")
     
     return EventSourceResponse(event_generator())
 

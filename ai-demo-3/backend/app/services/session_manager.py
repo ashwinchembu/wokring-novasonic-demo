@@ -16,6 +16,7 @@ class SessionManager:
     def __init__(self):
         self.sessions: Dict[str, NovaSonicClient] = {}
         self.session_info: Dict[str, SessionInfo] = {}
+        self.active_streams: Dict[str, bool] = {}  # Track active SSE streams per session
         self._cleanup_task: Optional[asyncio.Task] = None
     
     async def create_session(
@@ -64,6 +65,21 @@ class SessionManager:
         """Get session information."""
         return self.session_info.get(session_id)
     
+    def has_active_stream(self, session_id: str) -> bool:
+        """Check if a session already has an active event stream."""
+        return self.active_streams.get(session_id, False)
+    
+    def mark_stream_active(self, session_id: str):
+        """Mark a session as having an active event stream."""
+        self.active_streams[session_id] = True
+        logger.debug(f"Stream marked active for session: {session_id}")
+    
+    def mark_stream_inactive(self, session_id: str):
+        """Mark a session's event stream as inactive."""
+        if session_id in self.active_streams:
+            del self.active_streams[session_id]
+        logger.debug(f"Stream marked inactive for session: {session_id}")
+    
     async def end_session(self, session_id: str):
         """End a session and clean up resources."""
         client = self.sessions.get(session_id)
@@ -78,6 +94,9 @@ class SessionManager:
             if session_id in self.session_info:
                 self.session_info[session_id].status = SessionStatus.ENDED
                 self.session_info[session_id].last_activity = datetime.utcnow()
+            
+            # Clean up stream tracking
+            self.mark_stream_inactive(session_id)
             
             # Remove from active sessions
             del self.sessions[session_id]

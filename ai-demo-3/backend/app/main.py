@@ -28,6 +28,14 @@ from app.models.session import (
     AudioFormat
 )
 from app.services.session_manager import session_manager
+from app.prompting import (
+    get_or_create_session as get_conversation_session,
+    get_session as get_conv_session,
+    delete_session as delete_conversation_session,
+    lookup_hcp_id,
+    get_all_hcp_names,
+    validate_hcp_name
+)
 
 # Configure logging first
 logging.basicConfig(
@@ -542,6 +550,182 @@ async def get_session_info(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     
     return info
+
+
+# ============================================================================
+# Prompting & Conversation Policy Endpoints
+# ============================================================================
+
+@app.get("/conversation/{session_id}/state")
+async def get_conversation_state(session_id: str):
+    """
+    Get the conversation state for a session.
+    
+    Returns slot values, transcript, missing slots, and completion status.
+    """
+    conv_session = get_conv_session(session_id)
+    if not conv_session:
+        raise HTTPException(status_code=404, detail="Conversation session not found")
+    
+    return conv_session.to_dict()
+
+
+@app.post("/conversation/{session_id}/slot")
+async def set_conversation_slot(session_id: str, slot_name: str, value: str):
+    """
+    Manually set a slot value in the conversation session.
+    
+    Useful for testing or manual data entry.
+    """
+    conv_session = get_conversation_session(session_id)
+    
+    # Special handling for HCP name - automatically lookup ID
+    if slot_name == "hcp_name":
+        is_valid, full_name, hcp_id = validate_hcp_name(value)
+        if is_valid:
+            conv_session.set_slot("hcp_name", full_name)
+            conv_session.set_slot("hcp_id", hcp_id)
+            return {
+                "status": "success",
+                "slot": slot_name,
+                "value": full_name,
+                "hcp_id": hcp_id,
+                "missing_slots": conv_session.get_missing_required_slots()
+            }
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid HCP name: {value}. Please check spelling or choose from available HCPs."
+            )
+    
+    conv_session.set_slot(slot_name, value)
+    
+    return {
+        "status": "success",
+        "slot": slot_name,
+        "value": value,
+        "missing_slots": conv_session.get_missing_required_slots()
+    }
+
+
+@app.get("/conversation/{session_id}/summary")
+async def get_conversation_summary(session_id: str):
+    """
+    Generate a summary of the conversation for confirmation.
+    
+    Returns a human-readable summary of collected information.
+    """
+    conv_session = get_conv_session(session_id)
+    if not conv_session:
+        raise HTTPException(status_code=404, detail="Conversation session not found")
+    
+    if not conv_session.all_required_slots_filled():
+        return {
+            "status": "incomplete",
+            "missing_slots": conv_session.get_missing_required_slots(),
+            "summary": None
+        }
+    
+    summary = conv_session.generate_summary()
+    return {
+        "status": "complete",
+        "summary": summary,
+        "missing_slots": []
+    }
+
+
+@app.get("/conversation/{session_id}/output")
+async def get_conversation_output(session_id: str):
+    """
+    Generate the final JSON output for CRM integration.
+    
+    Returns the structured JSON in the required format.
+    """
+    conv_session = get_conv_session(session_id)
+    if not conv_session:
+        raise HTTPException(status_code=404, detail="Conversation session not found")
+    
+    if not conv_session.all_required_slots_filled():
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot generate output - missing required slots: {conv_session.get_missing_required_slots()}"
+        )
+    
+    output_json = conv_session.generate_output_json()
+    
+    return {
+        "status": "success",
+        "output": output_json,
+        "session_id": session_id
+    }
+
+
+@app.delete("/conversation/{session_id}")
+async def delete_conversation(session_id: str):
+    """Delete a conversation session."""
+    conv_session = get_conv_session(session_id)
+    if not conv_session:
+        raise HTTPException(status_code=404, detail="Conversation session not found")
+    
+    delete_conversation_session(session_id)
+    
+    return {
+        "status": "success",
+        "message": f"Conversation session {session_id} deleted"
+    }
+
+
+@app.get("/hcp/list")
+async def list_hcps():
+    """
+    Get list of all valid HCP names and IDs.
+    
+    Useful for autocomplete or validation.
+    """
+    hcp_names = get_all_hcp_names()
+    hcp_list = []
+    
+    for name in hcp_names:
+        hcp_id = lookup_hcp_id(name)
+        hcp_list.append({
+            "name": name,
+            "id": hcp_id
+        })
+    
+    return {
+        "total": len(hcp_list),
+        "hcps": hcp_list
+    }
+
+
+@app.get("/hcp/lookup")
+async def lookup_hcp(name: str):
+    """
+    Look up HCP ID by name.
+    
+    Supports partial and case-insensitive matching.
+    """
+    is_valid, full_name, hcp_id = validate_hcp_name(name)
+    
+    if is_valid:
+        return {
+            "found": True,
+            "name": full_name,
+            "id": hcp_id
+        }
+    else:
+        # Provide suggestions
+        all_hcps = get_all_hcp_names()
+        suggestions = [
+            hcp for hcp in all_hcps 
+            if name.lower() in hcp.lower()
+        ]
+        
+        return {
+            "found": False,
+            "name": name,
+            "suggestions": suggestions[:5]  # Top 5 suggestions
+        }
 
 
 if __name__ == "__main__":

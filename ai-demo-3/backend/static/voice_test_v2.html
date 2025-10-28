@@ -410,11 +410,12 @@
                 updateStatus('Creating session...', 'connected');
                 
                 // Create session
+                // Note: Not sending system_prompt so it uses the default Agent-683 CRM prompt
                 const response = await fetch(`${API_URL}/session/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        system_prompt: 'You are a friendly AI assistant. Keep your responses concise and natural, around 2-3 sentences.'
+                        // system_prompt will default to Agent-683 CRM prompt on backend
                     })
                 });
                 

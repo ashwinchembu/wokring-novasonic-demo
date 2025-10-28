@@ -1,4 +1,4 @@
-"""
+r"""
 Nova Sonic Client Service
 Manages bidirectional streaming with AWS Bedrock Nova Sonic model.
 Adapted from amazon-nova-samples/speech-to-speech patterns.
@@ -25,6 +25,7 @@ from aws_sdk_bedrock_runtime.config import Config
 from smithy_aws_core.identity.environment import EnvironmentCredentialsResolver
 
 from app.config import settings
+from app.prompting import AGENT_683_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +159,8 @@ class NovaSonicClient:
         """Initialize the Nova Sonic client."""
         self.model_id = model_id or settings.bedrock_model_id
         self.region = region or settings.region
-        self.system_prompt = system_prompt or settings.system_prompt
+        # Use Agent-683 system prompt by default for CRM call recording
+        self.system_prompt = system_prompt or AGENT_683_SYSTEM_PROMPT
         
         self.input_subject = Subject()
         self.output_subject = Subject()
@@ -185,6 +187,8 @@ class NovaSonicClient:
         self.audio_content_name = str(uuid.uuid4())
         
         logger.info(f"NovaSonicClient initialized with session_id: {self.session_id}")
+        logger.info(f"System prompt length: {len(self.system_prompt)} chars")
+        logger.debug(f"System prompt preview: {self.system_prompt[:200]}...")
     
     def _initialize_client(self):
         """Initialize the Bedrock client."""
@@ -237,10 +241,12 @@ class NovaSonicClient:
                 "SYSTEM"
             )
             
+            # Properly JSON-escape the system prompt
+            escaped_system_prompt = json.dumps(self.system_prompt)[1:-1]  # Remove outer quotes
             text_content = self.TEXT_INPUT_EVENT % (
                 self.prompt_name,
                 self.content_name,
-                self.system_prompt
+                escaped_system_prompt
             )
             
             text_content_end = self.CONTENT_END_EVENT % (
@@ -255,6 +261,9 @@ class NovaSonicClient:
                 text_content,
                 text_content_end
             ]
+            
+            logger.info(f"Sending system prompt to Bedrock (length: {len(self.system_prompt)} chars)")
+            logger.debug(f"System prompt content: {self.system_prompt[:300]}...")
             
             for event in init_events:
                 await self.send_raw_event(event)
@@ -393,6 +402,12 @@ class NovaSonicClient:
                             response_data = result.value.bytes_.decode('utf-8')
                             json_data = json.loads(response_data)
                             
+                            # Check for errors from Bedrock
+                            if 'error' in json_data:
+                                logger.error(f"Bedrock error: {json_data['error']}")
+                                self.output_subject.on_next(json_data)
+                                continue
+                            
                             # Handle different response types
                             if 'event' in json_data:
                                 await self._handle_response_event(json_data['event'])
@@ -402,7 +417,8 @@ class NovaSonicClient:
                             logger.debug(f"Pushing event to output_subject: {event_type}")
                             
                             self.output_subject.on_next(json_data)
-                        except json.JSONDecodeError:
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Failed to decode JSON response: {e}, data: {response_data[:200]}")
                             self.output_subject.on_next({"raw_data": response_data})
                             
                 except StopAsyncIteration:

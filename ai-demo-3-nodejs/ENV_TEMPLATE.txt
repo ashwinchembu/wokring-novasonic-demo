@@ -1,0 +1,75 @@
+# Copy this to .env and fill in your values
+# This file is provided because .env.example cannot be created due to gitignore
+
+# ============================================================================
+# AWS Configuration (REQUIRED)
+# ============================================================================
+AWS_ACCESS_KEY_ID=your_access_key_here
+AWS_SECRET_ACCESS_KEY=your_secret_key_here
+AWS_REGION=us-east-1
+
+# ============================================================================
+# Bedrock Configuration
+# ============================================================================
+BEDROCK_MODEL_ID=amazon.nova-sonic-v1:0
+BEDROCK_ENDPOINT_URL=
+
+# ============================================================================
+# Application Configuration
+# ============================================================================
+APP_ENV=development
+APP_PORT=8000
+APP_HOST=0.0.0.0
+LOG_LEVEL=info
+
+# ============================================================================
+# Audio Configuration
+# ============================================================================
+INPUT_SAMPLE_RATE=16000
+OUTPUT_SAMPLE_RATE=24000
+AUDIO_CHANNELS=1
+AUDIO_BIT_DEPTH=16
+
+# ============================================================================
+# Session Configuration
+# ============================================================================
+MAX_SESSION_DURATION=1800
+SESSION_TIMEOUT=300
+MAX_CONCURRENT_SESSIONS=100
+
+# ============================================================================
+# Nova Sonic Configuration
+# ============================================================================
+MAX_TOKENS=1024
+TEMPERATURE=0.7
+TOP_P=0.9
+VOICE_ID=matthew
+
+# ============================================================================
+# CORS Configuration
+# ============================================================================
+CORS_ORIGINS=http://localhost:8080,http://localhost:3000
+
+# ============================================================================
+# Redshift Configuration (Optional - for database integration)
+# ============================================================================
+REDSHIFT_HOST=
+REDSHIFT_PORT=5439
+REDSHIFT_DB=
+REDSHIFT_USER=
+REDSHIFT_PASSWORD=
+REDSHIFT_USE_IAM=false
+REDSHIFT_CONNECT_TIMEOUT=10
+REDSHIFT_QUERY_TIMEOUT=30
+
+# ============================================================================
+# n8n Configuration (Optional - for automation workflows)
+# ============================================================================
+N8N_WEBHOOK_URL=
+N8N_WEBHOOK_SECRET=
+
+# ============================================================================
+# Debug
+# ============================================================================
+DEBUG=false
+

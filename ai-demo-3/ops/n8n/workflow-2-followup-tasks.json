@@ -1,0 +1,232 @@
+{
+  "name": "Workflow 2: Follow-Up Tasks",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "task-events",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "task-events-webhook",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "Call Events Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "output": "={{ $json.payload.task.task_type }}"
+      },
+      "name": "Route by Task Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://app.asana.com/api/1.0/tasks",
+        "authentication": "bearerAuth",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"data\": {\n    \"name\": \"{{ $json.payload.task.description }}\",\n    \"notes\": \"Call ID: {{ $json.payload.call_pk }}\\nHCP: {{ $json.payload.account }}\",\n    \"due_on\": \"{{ $json.payload.task.due_date }}\",\n    \"assignee\": \"{{ $json.payload.task.assigned_to }}\",\n    \"projects\": [\"EMAIL_FOLLOWUPS_PROJECT_ID\"]\n  }\n}",
+        "options": {}
+      },
+      "name": "Create Asana Task (Email)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 200],
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "5",
+          "name": "Asana Bearer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://your-instance.salesforce.com/services/data/v55.0/sobjects/Task",
+        "authentication": "oAuth2",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"Subject\": \"{{ $json.payload.task.description }}\",\n  \"Description\": \"Call ID: {{ $json.payload.call_pk }}\\nHCP: {{ $json.payload.account }}\",\n  \"ActivityDate\": \"{{ $json.payload.task.due_date }}\",\n  \"OwnerId\": \"{{ $json.payload.task.assigned_to }}\",\n  \"TaskSubtype\": \"Call\",\n  \"Status\": \"Not Started\",\n  \"Priority\": \"Normal\"\n}",
+        "options": {}
+      },
+      "name": "Create Salesforce Task (Call)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300],
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "6",
+          "name": "Salesforce OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendarId": "primary",
+        "start": "={{ $json.payload.task.due_date }}T09:00:00",
+        "end": "={{ $json.payload.task.due_date }}T10:00:00",
+        "summary": "={{ $json.payload.task.description }}",
+        "description": "=Call ID: {{ $json.payload.call_pk }}\nHCP: {{ $json.payload.account }}",
+        "options": {
+          "attendees": "={{ $json.payload.task.assigned_to }}"
+        }
+      },
+      "name": "Create Calendar Event (Meeting)",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [650, 400],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "7",
+          "name": "Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://your-crm-api.com/api/sample-orders",
+        "authentication": "basicAuth",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"hcp_id\": \"{{ $json.payload.task.hcp_id }}\",\n  \"product\": \"{{ $json.payload.product }}\",\n  \"requested_by\": \"{{ $json.payload.task.assigned_to }}\",\n  \"notes\": \"{{ $json.payload.task.description }}\",\n  \"call_id\": \"{{ $json.payload.call_pk }}\"\n}",
+        "options": {}
+      },
+      "name": "Create Sample Order (Sample Drop)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 500],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "8",
+          "name": "CRM Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "#task-updates",
+        "text": "✅ *Follow-up Task Created*\n\n*Type:* {{ $json.payload.task.task_type }}\n*Description:* {{ $json.payload.task.description }}\n*Assigned to:* {{ $json.payload.task.assigned_to }}\n*Due:* {{ $json.payload.task.due_date }}\n\n*Related Call:* {{ $json.payload.call_pk }}",
+        "otherOptions": {}
+      },
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "slackApi": {
+          "id": "2",
+          "name": "Slack API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Route by Task Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Task Type": {
+      "main": [
+        [
+          {
+            "node": "Create Asana Task (Email)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Salesforce Task (Call)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Calendar Event (Meeting)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Sample Order (Sample Drop)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Asana Task (Email)": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Salesforce Task (Call)": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Calendar Event (Meeting)": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sample Order (Sample Drop)": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-06T00:00:00.000Z",
+  "versionId": "1"
+}
+

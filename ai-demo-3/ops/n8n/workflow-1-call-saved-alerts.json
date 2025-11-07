@@ -1,0 +1,208 @@
+{
+  "name": "Workflow 1: Call Saved → Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "call-events",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "call-events-webhook",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "Call Events Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.payload.adverse_event }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Check Adverse Event",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#safety-alerts",
+        "text": "🚨 *Adverse Event Reported*\n\n*Call ID:* {{ $json.payload.call_pk }}\n*HCP:* {{ $json.payload.account }}\n*Product:* {{ $json.payload.product }}\n*Date:* {{ $json.payload.call_date }}\n\n*Details:* {{ $json.payload.adverse_event_details }}\n\n_Reported at {{ $json.timestamp }}_",
+        "otherOptions": {}
+      },
+      "name": "Slack: AE Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [650, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "2",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@company.com",
+        "toEmail": "safety@company.com",
+        "subject": "URGENT: Adverse Event Reported - Call {{ $json.payload.call_pk }}",
+        "emailFormat": "html",
+        "text": "=<h2>Adverse Event Reported</h2>\n<p><strong>Call ID:</strong> {{ $json.payload.call_pk }}</p>\n<p><strong>HCP:</strong> {{ $json.payload.account }}</p>\n<p><strong>HCP ID:</strong> {{ $json.payload.id }}</p>\n<p><strong>Product:</strong> {{ $json.payload.product }}</p>\n<p><strong>Call Date:</strong> {{ $json.payload.call_date }}</p>\n<p><strong>Call Time:</strong> {{ $json.payload.call_time }}</p>\n\n<h3>Adverse Event Details</h3>\n<p>{{ $json.payload.adverse_event_details }}</p>\n\n<h3>Call Notes</h3>\n<p>{{ $json.payload.call_notes }}</p>\n\n<hr>\n<p><em>Reported at {{ $json.timestamp }}</em></p>"
+      },
+      "name": "Email: Safety Team",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://your-jira.atlassian.net/rest/api/3/issue",
+        "authentication": "basicAuth",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"fields\": {\n    \"project\": {\n      \"key\": \"SAFETY\"\n    },\n    \"summary\": \"Adverse Event - Call {{ $json.payload.call_pk }}\",\n    \"description\": \"HCP: {{ $json.payload.account }}\\nProduct: {{ $json.payload.product }}\\n\\nDetails: {{ $json.payload.adverse_event_details }}\",\n    \"issuetype\": {\n      \"name\": \"Incident\"\n    },\n    \"priority\": {\n      \"name\": \"High\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "name": "Create Jira Ticket",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 400],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "3",
+          "name": "Jira Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.payload.noncompliance_event }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Check Noncompliance",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 500]
+    },
+    {
+      "parameters": {
+        "channel": "#compliance-alerts",
+        "text": "⚠️ *Noncompliance Event Detected*\n\n*Call ID:* {{ $json.payload.call_pk }}\n*HCP:* {{ $json.payload.account }}\n*Product:* {{ $json.payload.product }}\n\n*Description:* {{ $json.payload.noncompliance_description }}\n\n_Detected at {{ $json.timestamp }}_",
+        "otherOptions": {}
+      },
+      "name": "Slack: Compliance Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [650, 500],
+      "credentials": {
+        "slackApi": {
+          "id": "2",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "sheetId": "YOUR_SHEET_ID",
+        "range": "Compliance Log!A:G",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Log to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [650, 600],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4",
+          "name": "Google Sheets"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Adverse Event",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Noncompliance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Adverse Event": {
+      "main": [
+        [
+          {
+            "node": "Slack: AE Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email: Safety Team",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Jira Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Noncompliance": {
+      "main": [
+        [
+          {
+            "node": "Slack: Compliance Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-06T00:00:00.000Z",
+  "versionId": "1"
+}
+

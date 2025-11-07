@@ -1,0 +1,128 @@
+2025-11-04 20:42:57,507 - app.main - INFO - ✅ Guardrails enabled
+INFO:     Started server process [38333]
+INFO:     Waiting for application startup.
+2025-11-04 20:42:57,515 - app.main - INFO - Starting AI Demo 3 Backend
+2025-11-04 20:42:57,515 - app.services.session_manager - INFO - Cleanup task started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62759 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63038 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63038 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+2025-11-04 20:44:08,271 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: be834df5-1f08-4686-8e2a-bb2f3b084f06
+2025-11-04 20:44:08,271 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-04 20:44:08,274 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-04 20:44:08,274 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-04 20:44:09,514 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 277389d6-0658-4886-bf22-6bf648568e6f
+2025-11-04 20:44:09,514 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-04 20:44:09,514 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-04 20:44:09,514 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-04 20:44:16,161 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: f8b0b06c-aad4-4f2c-9a52-e93b504a1962
+2025-11-04 20:44:16,161 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-04 20:44:16,161 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-04 20:44:16,161 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+INFO:     127.0.0.1:63087 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63087 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+2025-11-04 20:44:18,275 - app.services.nova_sonic_client - ERROR - Timeout connecting to Bedrock model amazon.nova-sonic-v1:0. Check AWS credentials and network connectivity.
+2025-11-04 20:44:18,275 - app.services.session_manager - ERROR - Failed to create session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:18,275 - app.main - ERROR - Error starting session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:18,276 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-8' coro=<RequestPipeline._execute_request() done, defined at /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py:242> exception=SmithyIdentityError('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required')>
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 259, in _execute_request
+    raise e
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 421, in _handle_attempt
+    identity = await identity_resolver.get_identity(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_aws_core/identity/environment.py", line 31, in get_identity
+    raise SmithyIdentityError(
+smithy_core.exceptions.SmithyIdentityError: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required
+2025-11-04 20:44:19,516 - app.services.nova_sonic_client - ERROR - Timeout connecting to Bedrock model amazon.nova-sonic-v1:0. Check AWS credentials and network connectivity.
+2025-11-04 20:44:19,516 - app.services.session_manager - ERROR - Failed to create session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:19,516 - app.main - ERROR - Error starting session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:19,516 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-10' coro=<RequestPipeline._execute_request() done, defined at /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py:242> exception=SmithyIdentityError('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required')>
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 259, in _execute_request
+    raise e
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 421, in _handle_attempt
+    identity = await identity_resolver.get_identity(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_aws_core/identity/environment.py", line 31, in get_identity
+    raise SmithyIdentityError(
+smithy_core.exceptions.SmithyIdentityError: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required
+2025-11-04 20:44:26,162 - app.services.nova_sonic_client - ERROR - Timeout connecting to Bedrock model amazon.nova-sonic-v1:0. Check AWS credentials and network connectivity.
+2025-11-04 20:44:26,163 - app.services.session_manager - ERROR - Failed to create session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:26,163 - app.main - ERROR - Error starting session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:26,163 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-12' coro=<RequestPipeline._execute_request() done, defined at /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py:242> exception=SmithyIdentityError('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required')>
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 259, in _execute_request
+    raise e
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 421, in _handle_attempt
+    identity = await identity_resolver.get_identity(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_aws_core/identity/environment.py", line 31, in get_identity
+    raise SmithyIdentityError(
+smithy_core.exceptions.SmithyIdentityError: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required
+2025-11-04 20:44:27,665 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: bb32a54f-c19d-4b34-9649-e7db313654ab
+2025-11-04 20:44:27,665 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-04 20:44:27,666 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-04 20:44:27,666 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-04 20:44:37,667 - app.services.nova_sonic_client - ERROR - Timeout connecting to Bedrock model amazon.nova-sonic-v1:0. Check AWS credentials and network connectivity.
+2025-11-04 20:44:37,668 - app.services.session_manager - ERROR - Failed to create session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:44:37,668 - app.main - ERROR - Error starting session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+INFO:     127.0.0.1:63133 - "POST /session/start HTTP/1.1" 500 Internal Server Error
+2025-11-04 20:44:37,668 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-16' coro=<RequestPipeline._execute_request() done, defined at /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py:242> exception=SmithyIdentityError('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required')>
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 259, in _execute_request
+    raise e
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 421, in _handle_attempt
+    identity = await identity_resolver.get_identity(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_aws_core/identity/environment.py", line 31, in get_identity
+    raise SmithyIdentityError(
+smithy_core.exceptions.SmithyIdentityError: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required
+INFO:     127.0.0.1:63133 - "GET /events/stream/undefined HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:63133 - "POST /audio/chunk HTTP/1.1" 422 Unprocessable Entity
+2025-11-04 20:45:01,620 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 9e158d44-480d-4cec-bff1-dcb934c02fd7
+2025-11-04 20:45:01,620 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-04 20:45:01,621 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-04 20:45:01,621 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-04 20:45:11,623 - app.services.nova_sonic_client - ERROR - Timeout connecting to Bedrock model amazon.nova-sonic-v1:0. Check AWS credentials and network connectivity.
+2025-11-04 20:45:11,623 - app.services.session_manager - ERROR - Failed to create session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+2025-11-04 20:45:11,623 - app.main - ERROR - Error starting session: Failed to connect to Bedrock: Connection timeout after 10 seconds
+INFO:     127.0.0.1:63293 - "POST /session/start HTTP/1.1" 500 Internal Server Error
+2025-11-04 20:45:11,624 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-42' coro=<RequestPipeline._execute_request() done, defined at /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py:242> exception=SmithyIdentityError('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required')>
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 259, in _execute_request
+    raise e
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_core/aio/client.py", line 421, in _handle_attempt
+    identity = await identity_resolver.get_identity(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/smithy_aws_core/identity/environment.py", line 31, in get_identity
+    raise SmithyIdentityError(
+smithy_core.exceptions.SmithyIdentityError: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required

@@ -8,6 +8,7 @@ import base64
 import json
 import uuid
 import logging
+from datetime import datetime
 from typing import Optional, Callable, AsyncIterator
 from rx.subject import Subject
 from rx import operators as ops
@@ -46,7 +47,101 @@ class NovaSonicClient:
         }
     }'''
     
-    START_PROMPT_EVENT = '''{
+    # Tool definitions for Nova Sonic
+    TOOL_DEFINITIONS = [
+        {
+            "toolSpec": {
+                "name": "getDateTool",
+                "description": "Return current date/time for sanity checks. Use this tool when the user asks about the current date or time.",
+                "inputSchema": {
+                    "json": json.dumps({
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    })
+                }
+            }
+        },
+        {
+            "toolSpec": {
+                "name": "lookupHcpTool",
+                "description": "Lookup an HCP (Healthcare Professional) by name in the system. Use this tool when the user mentions a doctor's name or asks if an HCP exists. Returns {found:Boolean, hcp_id:String|null, hco_id:String|null, hco_name:String|null, name:String|null, source:String|null}.",
+                "inputSchema": {
+                    "json": json.dumps({
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 2,
+                                "description": "The name of the healthcare professional to look up"
+                            }
+                        },
+                        "required": ["name"]
+                    })
+                }
+            }
+        },
+        {
+            "toolSpec": {
+                "name": "insertCallTool",
+                "description": "Persist the final call JSON to Redshift calls table. Use this tool after the user confirms the call summary to save the record to the database.",
+                "inputSchema": {
+                    "json": json.dumps({
+                        "type": "object",
+                        "properties": {
+                            "record": {
+                                "type": "object",
+                                "description": "Complete call record JSON with all fields"
+                            }
+                        },
+                        "required": ["record"]
+                    })
+                }
+            }
+        },
+        {
+            "toolSpec": {
+                "name": "emitN8nEventTool",
+                "description": "POST the saved calls row + session metadata to an n8n Webhook. Use this tool after successfully inserting a call to trigger automation workflows.",
+                "inputSchema": {
+                    "json": json.dumps({
+                        "type": "object",
+                        "properties": {
+                            "eventType": {
+                                "type": "string",
+                                "description": "Event type (e.g., 'call.saved', 'call.updated')"
+                            },
+                            "payload": {
+                                "type": "object",
+                                "description": "Event payload data"
+                            }
+                        },
+                        "required": ["eventType", "payload"]
+                    })
+                }
+            }
+        },
+        {
+            "toolSpec": {
+                "name": "createFollowUpTaskTool",
+                "description": "Create a follow-up task in PM/CRM when call_follow_up_task.task_type is present. Use this tool after persisting a call that includes a follow-up task.",
+                "inputSchema": {
+                    "json": json.dumps({
+                        "type": "object",
+                        "properties": {
+                            "task": {
+                                "type": "object",
+                                "description": "Task details (task_type, description, due_date, assigned_to)"
+                            }
+                        },
+                        "required": ["task"]
+                    })
+                }
+            }
+        }
+    ]
+    
+    START_PROMPT_EVENT_TEMPLATE = '''{
         "event": {
             "promptStart": {
                 "promptName": "%s",
@@ -66,7 +161,7 @@ class NovaSonicClient:
                     "mediaType": "application/json"
                 },
                 "toolConfiguration": {
-                    "tools": []
+                    "tools": %s
                 }
             }
         }
@@ -149,6 +244,35 @@ class NovaSonicClient:
             "sessionEnd": {}
         }
     }'''
+    
+    TOOL_RESULT_CONTENT_START_EVENT = '''{
+        "event": {
+            "contentStart": {
+                "promptName": "%s",
+                "contentName": "%s",
+                "role": "TOOL",
+                "type": "TOOL",
+                "interactive": false,
+                "toolResultInputConfiguration": {
+                    "toolUseId": "%s",
+                    "type": "TEXT",
+                    "textInputConfiguration": {
+                        "mediaType": "text/plain"
+                    }
+                }
+            }
+        }
+    }'''
+    
+    TOOL_RESULT_EVENT = '''{
+        "event": {
+            "toolResult": {
+                "promptName": "%s",
+                "contentName": "%s",
+                "content": "%s"
+            }
+        }
+    }'''
 
     def __init__(
         self,
@@ -185,6 +309,9 @@ class NovaSonicClient:
         self.prompt_name = str(uuid.uuid4())
         self.content_name = str(uuid.uuid4())
         self.audio_content_name = str(uuid.uuid4())
+        
+        # Tool use tracking
+        self.tool_use_handler: Optional[Callable] = None
         
         logger.info(f"NovaSonicClient initialized with session_id: {self.session_id}")
         logger.info(f"System prompt length: {len(self.system_prompt)} chars")
@@ -227,12 +354,16 @@ class NovaSonicClient:
                 settings.temperature
             )
             
-            prompt_event = self.START_PROMPT_EVENT % (
+            # Serialize tool definitions to JSON
+            tools_json = json.dumps(self.TOOL_DEFINITIONS)
+            
+            prompt_event = self.START_PROMPT_EVENT_TEMPLATE % (
                 self.prompt_name,
                 settings.output_sample_rate,
                 settings.audio_bit_depth,
                 settings.audio_channels,
-                settings.voice_id
+                settings.voice_id,
+                tools_json
             )
             
             text_content_start = self.TEXT_CONTENT_START_EVENT % (
@@ -435,6 +566,126 @@ class NovaSonicClient:
             if self.is_active:
                 self.output_subject.on_completed()
     
+    async def execute_tool(self, tool_name: str, tool_input: dict) -> dict:
+        """
+        Execute a tool and return the result.
+        
+        Args:
+            tool_name: Name of the tool to execute
+            tool_input: Input parameters for the tool
+            
+        Returns:
+            Tool execution result as a dictionary
+        """
+        logger.info(f"⚙️  execute_tool() called")
+        logger.info(f"  - Tool: {tool_name}")
+        logger.info(f"  - Input: {json.dumps(tool_input, indent=4)}")
+        
+        try:
+            # Handle getDateTool locally (simple, no external dependencies)
+            if tool_name == "getDateTool":
+                logger.info(f"📅 Executing getDateTool (built-in)...")
+                result = {
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "time": datetime.now().strftime("%H:%M:%S"),
+                    "timezone": "UTC",
+                    "timestamp": datetime.now().isoformat()
+                }
+                logger.info(f"✅ getDateTool result: {json.dumps(result, indent=4)}")
+                return result
+            
+            # Use centralized tool dispatcher for all other tools
+            logger.info(f"🔀 Dispatching to tool handler: {tool_name}...")
+            # Import here to avoid circular dependency
+            from app.tools import dispatch_tool_call
+            
+            result = await dispatch_tool_call(tool_name, tool_input)
+            logger.info(f"✅ {tool_name} executed successfully")
+            logger.info(f"  - Result: {json.dumps(result, indent=4)}")
+            return result
+                
+        except Exception as e:
+            logger.error(f"❌ Error executing tool {tool_name}: {e}", exc_info=True)
+            error_result = {
+                "error": str(e),
+                "tool_name": tool_name,
+                "tool_input": tool_input
+            }
+            logger.error(f"  - Error result: {json.dumps(error_result, indent=4)}")
+            return error_result
+    
+    async def send_tool_result(self, tool_use_id: str, tool_result: dict, status: str = "success"):
+        """
+        Send tool execution result back to Nova Sonic.
+        
+        Args:
+            tool_use_id: The ID of the tool use request
+            tool_result: The result from tool execution
+            status: Status of the tool execution (success or error)
+        """
+        logger.info(f"📤 send_tool_result() called")
+        logger.info(f"  - Tool Use ID: {tool_use_id}")
+        logger.info(f"  - Status: {status}")
+        logger.info(f"  - Result Preview: {json.dumps(tool_result, indent=4)[:500]}...")
+        
+        if not self.is_active:
+            logger.warning("⚠️  Cannot send tool result - stream not active")
+            return
+        
+        try:
+            # Generate a new content name for tool result
+            tool_result_content_name = str(uuid.uuid4())
+            logger.info(f"📦 Generated content name: {tool_result_content_name}")
+            
+            # Use the predefined template for TOOL content start (per AWS samples)
+            # The template now includes toolUseId in the configuration
+            logger.info(f"📤 Step 1: Sending contentStart event for TOOL result...")
+            content_start_event = self.TOOL_RESULT_CONTENT_START_EVENT % (
+                self.prompt_name,
+                tool_result_content_name,
+                tool_use_id  # Added for toolResultInputConfiguration
+            )
+            await self.send_raw_event(content_start_event)
+            logger.info(f"✅ contentStart sent")
+            
+            # Tool result event with proper format (per AWS samples)
+            # Content should be JSON string, properly escaped for outer JSON
+            logger.info(f"📤 Step 2: Sending tool result data...")
+            result_content = json.dumps(tool_result)
+            # Escape the JSON string for insertion into the template
+            escaped_result = json.dumps(result_content)[1:-1]  # Remove outer quotes
+            tool_result_event = self.TOOL_RESULT_EVENT % (
+                self.prompt_name,
+                tool_result_content_name,
+                escaped_result
+            )
+            await self.send_raw_event(tool_result_event)
+            logger.info(f"✅ Tool result data sent (length: {len(result_content)} chars)")
+            
+            # Content end
+            logger.info(f"📤 Step 3: Sending contentEnd event...")
+            content_end_event = self.CONTENT_END_EVENT % (
+                self.prompt_name,
+                tool_result_content_name
+            )
+            await self.send_raw_event(content_end_event)
+            logger.info(f"✅ contentEnd sent")
+            
+            logger.info(f"=" * 80)
+            logger.info(f"✅ TOOL RESULT FULLY TRANSMITTED")
+            logger.info(f"  - Tool Use ID: {tool_use_id}")
+            logger.info(f"  - Content Name: {tool_result_content_name}")
+            logger.info(f"  - Result Length: {len(result_content)} chars")
+            logger.info(f"  - Result: {result_content[:200]}...")
+            logger.info(f"=" * 80)
+            
+        except Exception as e:
+            logger.error(f"=" * 80)
+            logger.error(f"❌ ERROR SENDING TOOL RESULT")
+            logger.error(f"  - Tool Use ID: {tool_use_id}")
+            logger.error(f"  - Error: {e}", exc_info=True)
+            logger.error(f"=" * 80)
+    
     async def _handle_response_event(self, event: dict):
         """Handle specific response event types."""
         if 'contentStart' in event:
@@ -464,6 +715,70 @@ class NovaSonicClient:
                 logger.info(f"Assistant: {text_content}")
             elif self.role == "USER":
                 logger.info(f"User: {text_content}")
+        
+        elif 'toolUse' in event:
+            # Handle tool use request from Nova Sonic
+            tool_use = event['toolUse']
+            
+            # Debug: Log the full toolUse structure
+            logger.info(f"=" * 80)
+            logger.info(f"🔧 TOOL USE EVENT RECEIVED")
+            logger.info(f"Full toolUse structure: {json.dumps(tool_use, indent=2)}")
+            logger.info(f"=" * 80)
+            
+            tool_use_id = tool_use.get('toolUseId')
+            tool_name = tool_use.get('toolName')  # Changed from 'name' to 'toolName'
+            # Tool input is in the 'content' field, not 'input'
+            tool_input_str = tool_use.get('content', '{}')
+            
+            try:
+                tool_input = json.loads(tool_input_str) if isinstance(tool_input_str, str) else tool_input_str
+            except json.JSONDecodeError:
+                logger.error(f"❌ Failed to parse tool input: {tool_input_str}")
+                tool_input = {}
+            
+            logger.info(f"🔧 TOOL INVOCATION:")
+            logger.info(f"  - Tool Name: {tool_name}")
+            logger.info(f"  - Tool Use ID: {tool_use_id}")
+            logger.info(f"  - Tool Input: {json.dumps(tool_input, indent=4)}")
+            
+            # Emit tool invocation event to frontend
+            self.output_subject.on_next({
+                'event': {
+                    'toolLog': {
+                        'type': 'invocation',
+                        'toolName': tool_name,
+                        'toolUseId': tool_use_id,
+                        'input': tool_input
+                    }
+                }
+            })
+            
+            # Execute the tool
+            logger.info(f"⚙️  Executing tool: {tool_name}...")
+            tool_result = await self.execute_tool(tool_name, tool_input)
+            
+            logger.info(f"✅ Tool execution complete!")
+            logger.info(f"  - Tool Result: {json.dumps(tool_result, indent=4)}")
+            logger.info(f"=" * 80)
+            
+            # Emit tool result event to frontend
+            self.output_subject.on_next({
+                'event': {
+                    'toolLog': {
+                        'type': 'result',
+                        'toolName': tool_name,
+                        'toolUseId': tool_use_id,
+                        'result': tool_result
+                    }
+                }
+            })
+            
+            # Send the result back
+            logger.info(f"📤 Sending tool result back to agent...")
+            await self.send_tool_result(tool_use_id, tool_result)
+            logger.info(f"✅ Tool result sent successfully!")
+            logger.info(f"=" * 80)
         
         elif 'audioOutput' in event:
             audio_content = event['audioOutput']['content']

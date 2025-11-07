@@ -1,0 +1,164 @@
+{
+  "name": "Workflow 3: Daily Export",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Cron: Daily at 6 AM UTC",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  call_pk,\n  call_channel,\n  discussion_topic,\n  status,\n  account,\n  id,\n  adverse_event,\n  adverse_event_details,\n  noncompliance_event,\n  noncompliance_description,\n  call_notes,\n  call_date,\n  call_time,\n  product,\n  followup_task_type,\n  followup_description,\n  followup_due_date,\n  followup_assigned_to,\n  created_at\nFROM calls\nWHERE created_at >= CURRENT_DATE - INTERVAL '1 day'\nORDER BY created_at DESC",
+        "options": {}
+      },
+      "name": "Redshift: Query Last 24h",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "9",
+          "name": "Redshift Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "csv",
+        "options": {
+          "headerRow": true,
+          "delimiter": ","
+        }
+      },
+      "name": "Convert to CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "company-crm-exports",
+        "fileName": "=calls/exports/calls_export_{{ $now.format('YYYY-MM-DD') }}.csv",
+        "binaryData": true,
+        "options": {
+          "acl": "private",
+          "serverSideEncryption": "AES256"
+        }
+      },
+      "name": "Upload to S3",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "aws": {
+          "id": "10",
+          "name": "AWS Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "exports@company.com",
+        "toEmail": "analytics@company.com",
+        "subject": "=Daily Call Export - {{ $now.format('YYYY-MM-DD') }}",
+        "emailFormat": "text",
+        "text": "=Daily call export has been completed.\n\nTotal records: {{ $items('Redshift: Query Last 24h').length }}\nExport date: {{ $now.format('YYYY-MM-DD') }}\nS3 Location: s3://company-crm-exports/calls/exports/calls_export_{{ $now.format('YYYY-MM-DD') }}.csv\n\nThe export includes all calls created in the last 24 hours."
+      },
+      "name": "Email Summary",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "channel": "#data-exports",
+        "text": "=📊 *Daily Call Export Complete*\n\n*Date:* {{ $now.format('YYYY-MM-DD') }}\n*Records Exported:* {{ $items('Redshift: Query Last 24h').length }}\n*S3 Location:* `s3://company-crm-exports/calls/exports/calls_export_{{ $now.format('YYYY-MM-DD') }}.csv`\n\n✅ Export completed successfully at {{ $now.format('HH:mm:ss') }} UTC",
+        "otherOptions": {}
+      },
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "2",
+          "name": "Slack API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron: Daily at 6 AM UTC": {
+      "main": [
+        [
+          {
+            "node": "Redshift: Query Last 24h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redshift: Query Last 24h": {
+      "main": [
+        [
+          {
+            "node": "Convert to CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to CSV": {
+      "main": [
+        [
+          {
+            "node": "Upload to S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to S3": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-06T00:00:00.000Z",
+  "versionId": "1"
+}
+

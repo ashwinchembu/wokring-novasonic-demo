@@ -1,0 +1,161 @@
+{
+  "name": "Workflow 4: HCP Enrichment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hcp-enrichment",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "hcp-enrichment-webhook",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "Call Events Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT * FROM hcp\nWHERE LOWER(name) LIKE LOWER('%{{ $json.payload.name }}%')\nLIMIT 1",
+        "options": {}
+      },
+      "name": "Redshift Lookup",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "9",
+          "name": "Redshift Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $items().length }}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Check If New HCP",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#hcp-moderation",
+        "text": "=🔍 *New HCP Mentioned*\n\n*Name:* {{ $items('Webhook')[0].json.payload.name }}\n*Call ID:* {{ $items('Webhook')[0].json.payload.call_pk }}\n*Context:* {{ $items('Webhook')[0].json.payload.context }}\n\n*Actions:*\n- ✅ Add to Redshift\n- ❌ Ignore\n- 🔍 Research\n\n_Time: {{ $items('Webhook')[0].json.timestamp }}_",
+        "otherOptions": {}
+      },
+      "name": "Slack: Manual Review",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "2",
+          "name": "Slack API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "=https://npiregistry.cms.hhs.gov/api/?version=2.1&last_name={{ $items('Webhook')[0].json.payload.name.split(' ').pop() }}&limit=5",
+        "options": {}
+      },
+      "name": "NPI Registry Lookup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "sheetId": "YOUR_SHEET_ID",
+        "range": "HCP Discovery Log!A:F",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Log to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [850, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4",
+          "name": "Google Sheets"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Redshift Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redshift Lookup": {
+      "main": [
+        [
+          {
+            "node": "Check If New HCP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If New HCP": {
+      "main": [
+        [
+          {
+            "node": "Slack: Manual Review",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "NPI Registry Lookup",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-06T00:00:00.000Z",
+  "versionId": "1"
+}
+

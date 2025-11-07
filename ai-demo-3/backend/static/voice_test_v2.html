@@ -524,6 +524,37 @@
                     debug('Content end');
                 });
                 
+                // Tool logging
+                eventSource.addEventListener('tool_log', (e) => {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'tool_invocation') {
+                        console.log('%c🔧 TOOL INVOCATION', 'color: #ff9800; font-weight: bold; font-size: 14px');
+                        console.log('  Tool Name:', data.toolName);
+                        console.log('  Tool Use ID:', data.toolUseId);
+                        console.log('  Input:', data.input);
+                        debug(`🔧 Tool: ${data.toolName} | Input: ${JSON.stringify(data.input)}`);
+                    } else if (data.type === 'tool_result') {
+                        console.log('%c✅ TOOL RESULT', 'color: #4caf50; font-weight: bold; font-size: 14px');
+                        console.log('  Tool Name:', data.toolName);
+                        console.log('  Result:', data.result);
+                        if (data.result.error) {
+                            console.error('  ❌ Error:', data.result.error);
+                            debug(`❌ Tool Error: ${data.toolName} - ${data.result.error}`);
+                        } else if (data.result.found !== undefined) {
+                            // HCP lookup result
+                            if (data.result.found) {
+                                console.log('  ✅ Found:', data.result.hcp_id, '(' + data.result.source + ')');
+                                debug(`✅ Found HCP: ${data.result.hcp_id} (source: ${data.result.source})`);
+                            } else {
+                                console.log('  ⚠️ Not found');
+                                debug(`⚠️ HCP not found`);
+                            }
+                        } else {
+                            debug(`✅ Tool result: ${JSON.stringify(data.result).substring(0, 100)}`);
+                        }
+                    }
+                });
+                
                 eventSource.onerror = (err) => {
                     console.error('EventSource error:', err);
                 };

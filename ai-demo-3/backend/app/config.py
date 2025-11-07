@@ -53,6 +53,20 @@ class Settings(BaseSettings):
     # CORS Configuration
     cors_origins: list = ["http://localhost:8080", "http://localhost:3000"]
     
+    # Redshift Configuration
+    redshift_host: Optional[str] = None
+    redshift_port: int = 5439
+    redshift_db: Optional[str] = None
+    redshift_user: Optional[str] = None
+    redshift_password: Optional[str] = None
+    redshift_use_iam: bool = False
+    redshift_connect_timeout: int = 10
+    redshift_query_timeout: int = 30
+    
+    # n8n Configuration
+    n8n_webhook_url: Optional[str] = None
+    n8n_webhook_secret: Optional[str] = None
+    
     # Debug
     debug: bool = False
     

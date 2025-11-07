@@ -118,6 +118,40 @@ async def health():
     }
 
 
+@app.get("/db/healthz")
+async def db_health():
+    """
+    Database health check endpoint.
+    
+    Checks Redshift connectivity and returns status.
+    Useful for Kubernetes liveness/readiness probes.
+    """
+    try:
+        from app.redshift import check_connection
+        
+        is_healthy = await check_connection()
+        
+        if is_healthy:
+            return {
+                "status": "healthy",
+                "database": "redshift",
+                "connected": True,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        else:
+            raise HTTPException(
+                status_code=503,
+                detail="Database connection failed"
+            )
+            
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Database health check failed: {str(e)}"
+        )
+
+
 @app.post("/session/start", response_model=SessionStartResponse)
 async def start_session(request: SessionStartRequest):
     """
@@ -390,6 +424,36 @@ async def stream_events(session_id: str):
                             "timestamp": datetime.utcnow().isoformat()
                         })
                     }
+                
+                # Tool log (custom event for frontend logging)
+                elif 'toolLog' in event_data:
+                    tool_log = event_data['toolLog']
+                    log_type = tool_log.get('type', 'unknown')
+                    
+                    if log_type == 'invocation':
+                        logger.info(f"📤 Sending tool invocation log to frontend: {tool_log.get('toolName')}")
+                        yield {
+                            "event": "tool_log",
+                            "data": json.dumps({
+                                "type": "tool_invocation",
+                                "toolName": tool_log.get('toolName'),
+                                "toolUseId": tool_log.get('toolUseId'),
+                                "input": tool_log.get('input'),
+                                "timestamp": datetime.utcnow().isoformat()
+                            })
+                        }
+                    elif log_type == 'result':
+                        logger.info(f"📤 Sending tool result log to frontend: {tool_log.get('toolName')}")
+                        yield {
+                            "event": "tool_log",
+                            "data": json.dumps({
+                                "type": "tool_result",
+                                "toolName": tool_log.get('toolName'),
+                                "toolUseId": tool_log.get('toolUseId'),
+                                "result": tool_log.get('result'),
+                                "timestamp": datetime.utcnow().isoformat()
+                            })
+                        }
         
         except Exception as e:
             logger.error(f"Error in event stream: {e}")

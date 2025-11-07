@@ -1,0 +1,1015 @@
+INFO:     Loading environment from '.env'
+2025-11-04 20:46:27,085 - app.main - INFO - ✅ Guardrails enabled
+INFO:     Started server process [38555]
+INFO:     Waiting for application startup.
+2025-11-04 20:46:27,091 - app.main - INFO - Starting AI Demo 3 Backend
+2025-11-04 20:46:27,091 - app.services.session_manager - INFO - Cleanup task started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63487 - "GET /health HTTP/1.1" 200 OK
+2025-11-04 20:46:55,051 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 9618cc6b-6558-4564-84a3-c4c9360c414c
+2025-11-04 20:46:55,051 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-04 20:46:55,051 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-04 20:46:55,052 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-04 20:46:55,055 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-04 20:46:55,055 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2450 chars)
+2025-11-04 20:46:55,057 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-04 20:46:55,058 - app.services.session_manager - INFO - Session created: 9618cc6b-6558-4564-84a3-c4c9360c414c
+2025-11-04 20:46:55,058 - app.main - INFO - Session started: 9618cc6b-6558-4564-84a3-c4c9360c414c
+INFO:     127.0.0.1:63532 - "POST /session/start HTTP/1.1" 200 OK
+2025-11-04 20:47:59,301 - app.services.nova_sonic_client - ERROR - Error receiving response: Timed out waiting for input events
+2025-11-04 20:53:06,380 - app.services.session_manager - INFO - Cleaning up inactive session: 9618cc6b-6558-4564-84a3-c4c9360c414c
+2025-11-04 20:53:06,380 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-11-04 20:53:06,381 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-11-04 20:53:06,382 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-11-04 20:53:06,382 - app.services.session_manager - INFO - Session ended: 9618cc6b-6558-4564-84a3-c4c9360c414c
+INFO:     127.0.0.1:57380 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57380 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+2025-11-06 19:00:01,249 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 6c77870e-1f03-44e4-85cf-538a95ff7ed7
+2025-11-06 19:00:01,249 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-06 19:00:01,251 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-06 19:00:01,251 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-06 19:00:01,257 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-06 19:00:01,258 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2450 chars)
+2025-11-06 19:00:01,260 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-06 19:00:01,261 - app.services.session_manager - INFO - Session created: 6c77870e-1f03-44e4-85cf-538a95ff7ed7
+2025-11-06 19:00:01,261 - app.main - INFO - Session started: 6c77870e-1f03-44e4-85cf-538a95ff7ed7
+INFO:     127.0.0.1:57380 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57380 - "GET /events/stream/6c77870e-1f03-44e4-85cf-538a95ff7ed7 HTTP/1.1" 200 OK
+2025-11-06 19:00:02,925 - app.main - INFO - SSE stream started for session 6c77870e-1f03-44e4-85cf-538a95ff7ed7
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:05,307 - app.services.nova_sonic_client - INFO - User: hello
+2025-11-06 19:00:05,308 - app.main - INFO - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] YIELDING transcript (hash=cca27bec8a3d9097): user - hello...
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:05,948 - app.services.nova_sonic_client - INFO - Assistant: Hello! I'm here to assist you with recording your interactions with healthcare professionals.
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:05,956 - app.guardrails_loader - INFO - GuardrailsLoader initialized with file: /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/docs/guardrails.xlsx
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO - ✅ Loaded 11 rules (11 enabled) from guardrails.xlsx
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - PHI_HIPAA: 2 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - OFF_LABEL: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - AE_DETECTION: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - COMPARATIVE_CLAIM: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - PRICING_REBATE: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - UNAPPROVED_INDICATION: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - GUARANTEE: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - CLINICAL_GUIDANCE: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - LANGUAGE_EN_ONLY: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails_loader - INFO -    - PII_PROMPT: 1 enabled rule(s)
+2025-11-06 19:00:06,166 - app.guardrails - INFO - GuardrailsEngine initialized
+2025-11-06 19:00:06,168 - app.guardrails_audit - INFO - GuardrailsAuditLogger initialized: /Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/logs/guardrails
+2025-11-06 19:00:06,169 - app.main - INFO - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] YIELDING transcript (hash=80727c9368d52052): assistant - Hello! I'm here to assist you with recording your ...
+INFO:     127.0.0.1:57381 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:08,038 - app.services.nova_sonic_client - INFO - Assistant:  How can I help you today?
+2025-11-06 19:00:08,042 - app.main - INFO - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] YIELDING transcript (hash=bb0b1613087e0988): assistant -  How can I help you today?...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:09,400 - app.main - WARNING - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] DUPLICATE DETECTED! Skipping: assistant - Hello! I'm here to assist you with recording your ...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:10,399 - app.main - WARNING - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] DUPLICATE DETECTED! Skipping: assistant -  How can I help you today?...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:15,192 - app.services.nova_sonic_client - INFO - User: is doctor karina soto in the
+2025-11-06 19:00:15,193 - app.main - INFO - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] YIELDING transcript (hash=524e74d3c527c899): user - is doctor karina soto in the...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:15,672 - app.services.nova_sonic_client - INFO - User: database
+2025-11-06 19:00:15,673 - app.main - INFO - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] YIELDING transcript (hash=dbe26e64782cbb24): user - database...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:16,594 - app.services.nova_sonic_client - INFO - Tool use event received: {
+  "completionId": "3fe707c8-95c3-473e-9dc4-366c6f03778d",
+  "content": "{\"name\":\"Karina Soto\"}",
+  "contentId": "fffd2530-528a-4ba5-b8e2-e49cfad6a15e",
+  "promptName": "6c897433-bf0a-4b35-8ace-3fbdd301daa8",
+  "role": "TOOL",
+  "sessionId": "e75d12df-9e37-4aac-9998-3d1a9bcb7c7c",
+  "toolName": "lookupHcpTool",
+  "toolUseId": "329fcf77-d121-436f-abc9-0047fa4ec487"
+}
+2025-11-06 19:00:16,595 - app.services.nova_sonic_client - INFO - Tool use request: lookupHcpTool (id: 329fcf77-d121-436f-abc9-0047fa4ec487)
+2025-11-06 19:00:16,595 - app.services.nova_sonic_client - INFO - Tool input: {'name': 'Karina Soto'}
+2025-11-06 19:00:16,595 - app.services.nova_sonic_client - INFO - Executing tool: lookupHcpTool with input: {'name': 'Karina Soto'}
+2025-11-06 19:00:16,610 - app.services.nova_sonic_client - WARNING - Redshift lookup failed, falling back to static map: name 'pool' is not defined
+2025-11-06 19:00:16,611 - app.services.nova_sonic_client - INFO - lookupHcpTool result for 'Karina Soto': {'found': False, 'name': 'Karina Soto', 'hcp_id': None, 'hco_id': None, 'hco_name': None, 'source': None}
+2025-11-06 19:00:16,611 - app.services.nova_sonic_client - INFO - Tool result sent for tool_use_id: 329fcf77-d121-436f-abc9-0047fa4ec487
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:17,553 - app.services.nova_sonic_client - INFO - Assistant: I couldn't find Doctor Karina Soto in our database. Could you please verify the name or provide additional details?
+2025-11-06 19:00:17,557 - app.main - INFO - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] YIELDING transcript (hash=ca688993b240799a): assistant - I couldn't find Doctor Karina Soto in our database...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:00:22,116 - app.main - WARNING - [6c77870e-1f03-44e4-85cf-538a95ff7ed7] DUPLICATE DETECTED! Skipping: assistant - I couldn't find Doctor Karina Soto in our database...
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57408 - "POST /audio/end HTTP/1.1" 200 OK
+2025-11-06 19:00:22,669 - app.main - INFO - SSE stream ended for session 6c77870e-1f03-44e4-85cf-538a95ff7ed7
+2025-11-06 19:00:22,671 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-11-06 19:00:22,673 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-11-06 19:00:22,674 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-11-06 19:00:22,674 - app.services.session_manager - INFO - Session ended: 6c77870e-1f03-44e4-85cf-538a95ff7ed7
+INFO:     127.0.0.1:57408 - "DELETE /session/6c77870e-1f03-44e4-85cf-538a95ff7ed7 HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/awscrt/aio/http.py", line 298, in _on_body
+    future.set_result(chunk)
+  File "/usr/local/Cellar/python@3.12/3.12.9/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x114ab8080 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+INFO:     127.0.0.1:59701 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59701 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+2025-11-06 19:09:43,434 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 2d48caf4-2ab3-4f4e-9bca-406d9f954a1e
+2025-11-06 19:09:43,436 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-06 19:09:43,439 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-06 19:09:43,439 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-06 19:09:43,447 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-06 19:09:43,448 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2450 chars)
+2025-11-06 19:09:43,451 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-06 19:09:43,451 - app.services.session_manager - INFO - Session created: 2d48caf4-2ab3-4f4e-9bca-406d9f954a1e
+2025-11-06 19:09:43,451 - app.main - INFO - Session started: 2d48caf4-2ab3-4f4e-9bca-406d9f954a1e
+INFO:     127.0.0.1:59701 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59701 - "GET /events/stream/2d48caf4-2ab3-4f4e-9bca-406d9f954a1e HTTP/1.1" 200 OK
+2025-11-06 19:09:44,692 - app.main - INFO - SSE stream started for session 2d48caf4-2ab3-4f4e-9bca-406d9f954a1e
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:47,399 - app.services.nova_sonic_client - INFO - User: hello
+2025-11-06 19:09:47,401 - app.main - INFO - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] YIELDING transcript (hash=cca27bec8a3d9097): user - hello...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:47,895 - app.services.nova_sonic_client - INFO - Assistant: Hello! I'm here to assist you with recording your interactions with healthcare professionals.
+2025-11-06 19:09:47,902 - app.main - INFO - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] YIELDING transcript (hash=80727c9368d52052): assistant - Hello! I'm here to assist you with recording your ...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:49,791 - app.services.nova_sonic_client - INFO - Assistant:  How can I help you today?
+2025-11-06 19:09:49,795 - app.main - INFO - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] YIELDING transcript (hash=bb0b1613087e0988): assistant -  How can I help you today?...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:52,502 - app.main - WARNING - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] DUPLICATE DETECTED! Skipping: assistant - Hello! I'm here to assist you with recording your ...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:52,687 - app.main - WARNING - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] DUPLICATE DETECTED! Skipping: assistant -  How can I help you today?...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:56,695 - app.services.nova_sonic_client - INFO - User: is doctor karina soto in your database
+2025-11-06 19:09:56,697 - app.main - INFO - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] YIELDING transcript (hash=de71e6197d590ff1): user - is doctor karina soto in your database...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:57,609 - app.services.nova_sonic_client - INFO - Tool use event received: {
+  "completionId": "3e003adf-c002-460b-9395-0043be8bc167",
+  "content": "{\"name\":\"Karina Soto\"}",
+  "contentId": "6f7e24fe-745b-47ce-b994-7eba994c8d1a",
+  "promptName": "ebe2c0e0-aff6-4403-976f-8f0c672093a6",
+  "role": "TOOL",
+  "sessionId": "640535e6-17d5-41ab-81a0-fcb52705a466",
+  "toolName": "lookupHcpTool",
+  "toolUseId": "2e22af99-175f-4c9f-ae8d-dbc3b597d299"
+}
+2025-11-06 19:09:57,610 - app.services.nova_sonic_client - INFO - Tool use request: lookupHcpTool (id: 2e22af99-175f-4c9f-ae8d-dbc3b597d299)
+2025-11-06 19:09:57,610 - app.services.nova_sonic_client - INFO - Tool input: {'name': 'Karina Soto'}
+2025-11-06 19:09:57,610 - app.services.nova_sonic_client - INFO - Executing tool: lookupHcpTool with input: {'name': 'Karina Soto'}
+2025-11-06 19:09:57,614 - app.services.nova_sonic_client - WARNING - Redshift lookup failed, falling back to static map: name 'pool' is not defined
+2025-11-06 19:09:57,615 - app.services.nova_sonic_client - INFO - lookupHcpTool result for 'Karina Soto': {'found': False, 'name': 'Karina Soto', 'hcp_id': None, 'hco_id': None, 'hco_name': None, 'source': None}
+2025-11-06 19:09:57,616 - app.services.nova_sonic_client - INFO - Tool result sent for tool_use_id: 2e22af99-175f-4c9f-ae8d-dbc3b597d299
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:09:58,488 - app.services.nova_sonic_client - INFO - Assistant: I couldn't find Doctor Karina Soto in our database. Could you please verify the name or provide additional details?
+2025-11-06 19:09:58,495 - app.main - INFO - [2d48caf4-2ab3-4f4e-9bca-406d9f954a1e] YIELDING transcript (hash=ca688993b240799a): assistant - I couldn't find Doctor Karina Soto in our database...
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/end HTTP/1.1" 200 OK
+2025-11-06 19:10:01,824 - app.main - INFO - SSE stream ended for session 2d48caf4-2ab3-4f4e-9bca-406d9f954a1e
+2025-11-06 19:10:01,825 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-11-06 19:10:01,826 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-11-06 19:10:01,827 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-11-06 19:10:01,827 - app.services.session_manager - INFO - Session ended: 2d48caf4-2ab3-4f4e-9bca-406d9f954a1e
+INFO:     127.0.0.1:59702 - "DELETE /session/2d48caf4-2ab3-4f4e-9bca-406d9f954a1e HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/ashwin/zs/wokring-novasonic-demo/ai-demo-3/backend/.venv312/lib/python3.12/site-packages/awscrt/aio/http.py", line 298, in _on_body
+    future.set_result(chunk)
+  File "/usr/local/Cellar/python@3.12/3.12.9/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x114ae1ac0 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+2025-11-06 19:10:05,527 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+2025-11-06 19:10:05,527 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-06 19:10:05,528 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-06 19:10:05,528 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-06 19:10:05,532 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-06 19:10:05,532 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2450 chars)
+2025-11-06 19:10:05,534 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-06 19:10:05,534 - app.services.session_manager - INFO - Session created: 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+2025-11-06 19:10:05,535 - app.main - INFO - Session started: 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+INFO:     127.0.0.1:59702 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "GET /events/stream/0ea470e4-b2bc-4fbe-a3ad-d324dc72f656 HTTP/1.1" 200 OK
+2025-11-06 19:10:05,766 - app.main - INFO - SSE stream started for session 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:10:09,393 - app.services.nova_sonic_client - ERROR - Error receiving response: Invalid input request, please fix your input and try again.
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:10:09,397 - app.main - INFO - SSE stream ended for session 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /events/stream/0ea470e4-b2bc-4fbe-a3ad-d324dc72f656 HTTP/1.1" 200 OK
+2025-11-06 19:10:12,407 - app.main - INFO - SSE stream started for session 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+2025-11-06 19:10:12,409 - app.main - INFO - SSE stream ended for session 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /events/stream/0ea470e4-b2bc-4fbe-a3ad-d324dc72f656 HTTP/1.1" 200 OK
+2025-11-06 19:10:15,420 - app.main - INFO - SSE stream started for session 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+2025-11-06 19:10:15,421 - app.main - INFO - SSE stream ended for session 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+2025-11-06 19:10:19,115 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: 2c540ffa-2a45-456a-b233-7b5d357d9660
+2025-11-06 19:10:19,115 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-06 19:10:19,116 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-06 19:10:19,116 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-06 19:10:19,119 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-06 19:10:19,120 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2450 chars)
+2025-11-06 19:10:19,122 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-06 19:10:19,122 - app.services.session_manager - INFO - Session created: 2c540ffa-2a45-456a-b233-7b5d357d9660
+2025-11-06 19:10:19,122 - app.main - INFO - Session started: 2c540ffa-2a45-456a-b233-7b5d357d9660
+INFO:     127.0.0.1:59820 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /events/stream/2c540ffa-2a45-456a-b233-7b5d357d9660 HTTP/1.1" 200 OK
+2025-11-06 19:10:19,345 - app.main - INFO - SSE stream started for session 2c540ffa-2a45-456a-b233-7b5d357d9660
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:10:24,573 - app.services.nova_sonic_client - INFO - User: what is the date today
+2025-11-06 19:10:24,574 - app.main - INFO - [2c540ffa-2a45-456a-b233-7b5d357d9660] YIELDING transcript (hash=455cfe4a7043a2dd): user - what is the date today...
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:10:24,964 - app.services.nova_sonic_client - INFO - Tool use event received: {
+  "completionId": "de08290f-65a4-4717-ae93-74ac707f17f4",
+  "content": "{}",
+  "contentId": "47083e37-68a3-421b-bc45-6f8d36d26ebc",
+  "promptName": "07176714-394b-4252-b238-85b93ed5cf34",
+  "role": "TOOL",
+  "sessionId": "568294c5-0686-4078-84f1-18f52edc2257",
+  "toolName": "getDateTool",
+  "toolUseId": "14ca79f2-90a5-4dfe-894a-2e171471ad85"
+}
+2025-11-06 19:10:24,964 - app.services.nova_sonic_client - INFO - Tool use request: getDateTool (id: 14ca79f2-90a5-4dfe-894a-2e171471ad85)
+2025-11-06 19:10:24,964 - app.services.nova_sonic_client - INFO - Tool input: {}
+2025-11-06 19:10:24,964 - app.services.nova_sonic_client - INFO - Executing tool: getDateTool with input: {}
+2025-11-06 19:10:24,964 - app.services.nova_sonic_client - INFO - getDateTool result: {'date': '2025-11-06', 'time': '19:10:24', 'timezone': 'UTC', 'timestamp': '2025-11-06T19:10:24.964912'}
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:10:25,143 - app.services.nova_sonic_client - INFO - Tool result sent for tool_use_id: 14ca79f2-90a5-4dfe-894a-2e171471ad85
+2025-11-06 19:10:25,145 - app.services.nova_sonic_client - ERROR - Error receiving response: Invalid input request, please fix your input and try again.
+2025-11-06 19:10:25,146 - app.main - INFO - SSE stream ended for session 2c540ffa-2a45-456a-b233-7b5d357d9660
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+2025-11-06 19:10:28,868 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: b274d292-523b-4d11-9f96-8ac0eb72c635
+2025-11-06 19:10:28,868 - app.services.nova_sonic_client - INFO - System prompt length: 2450 chars
+2025-11-06 19:10:28,871 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-06 19:10:28,871 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-06 19:10:28,874 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-06 19:10:28,874 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2450 chars)
+2025-11-06 19:10:28,876 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-06 19:10:28,876 - app.services.session_manager - INFO - Session created: b274d292-523b-4d11-9f96-8ac0eb72c635
+2025-11-06 19:10:28,876 - app.main - INFO - Session started: b274d292-523b-4d11-9f96-8ac0eb72c635
+INFO:     127.0.0.1:59820 - "POST /session/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "GET /events/stream/b274d292-523b-4d11-9f96-8ac0eb72c635 HTTP/1.1" 200 OK
+2025-11-06 19:10:29,093 - app.main - INFO - SSE stream started for session b274d292-523b-4d11-9f96-8ac0eb72c635
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59870 - "POST /audio/chunk HTTP/1.1" 200 OK
+2025-11-06 19:10:35,148 - app.services.nova_sonic_client - ERROR - Error receiving response: Invalid input request, please fix your input and try again.
+2025-11-06 19:10:35,149 - app.main - INFO - SSE stream ended for session b274d292-523b-4d11-9f96-8ac0eb72c635
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/chunk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59820 - "POST /audio/end HTTP/1.1" 200 OK
+2025-11-06 19:10:37,541 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-11-06 19:10:37,543 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-11-06 19:10:37,544 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-11-06 19:10:37,545 - app.services.session_manager - INFO - Session ended: b274d292-523b-4d11-9f96-8ac0eb72c635
+INFO:     127.0.0.1:59820 - "DELETE /session/b274d292-523b-4d11-9f96-8ac0eb72c635 HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-11-06 19:11:17,385 - app.main - INFO - Shutting down AI Demo 3 Backend
+2025-11-06 19:11:17,385 - app.services.session_manager - INFO - Shutting down session manager
+2025-11-06 19:11:17,386 - app.services.session_manager - INFO - Cleanup task stopped
+2025-11-06 19:11:17,386 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-11-06 19:11:17,389 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-11-06 19:11:17,391 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-11-06 19:11:17,391 - app.services.session_manager - INFO - Session ended: 0ea470e4-b2bc-4fbe-a3ad-d324dc72f656
+2025-11-06 19:11:17,391 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+2025-11-06 19:11:17,393 - app.services.nova_sonic_client - INFO - Session end event sent
+2025-11-06 19:11:17,394 - app.services.nova_sonic_client - INFO - Nova Sonic client closed
+2025-11-06 19:11:17,394 - app.services.session_manager - INFO - Session ended: 2c540ffa-2a45-456a-b233-7b5d357d9660
+2025-11-06 19:11:17,394 - app.services.session_manager - INFO - Session manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38555]

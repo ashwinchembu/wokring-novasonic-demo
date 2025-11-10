@@ -1,12 +1,16 @@
 /**
  * Nova Sonic Client Service
  * Manages bidirectional streaming with AWS Bedrock Nova Sonic model
+ * Based on AWS amazon-nova-samples implementation
  */
 import {
   BedrockRuntimeClient,
   InvokeModelWithBidirectionalStreamCommand,
+  InvokeModelWithBidirectionalStreamInput,
 } from '@aws-sdk/client-bedrock-runtime';
-import { Subject } from 'rxjs';
+import { NodeHttp2Handler } from '@smithy/node-http-handler';
+import { Subject, firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../logger';
 import config from '../config';
@@ -19,44 +23,46 @@ export interface NovaSonicClientOptions {
   systemPrompt?: string;
 }
 
+// Session data structure
+interface SessionData {
+  queue: Array<any>;
+  queueSignal: Subject<void>;
+  closeSignal: Subject<void>;
+  isActive: boolean;
+  promptName: string;
+  audioContentId: string;
+}
+
 export class NovaSonicClient {
   private modelId: string;
   private region: string;
   private systemPrompt: string;
 
-  private inputSubject: Subject<string>;
-  private outputSubject: Subject<Record<string, unknown>>;
-  private audioSubject: Subject<{ audioBytes: Buffer; promptName: string; contentName: string }>;
-
-  private streamResponse: any;
-  private isActive: boolean;
   private bedrockClient: BedrockRuntimeClient;
+  private sessionData: SessionData | null = null;
+  private outputSubject: Subject<Record<string, unknown>>;
 
   public sessionId: string;
-  private promptName: string;
-  private contentName: string;
-  private audioContentName: string;
-
+  public isActive: boolean;
   public role?: string;
-  private displayAssistantText: boolean;
 
   constructor(options: NovaSonicClientOptions = {}) {
     this.modelId = options.modelId || config.bedrock.modelId;
     this.region = options.region || config.aws.region;
     this.systemPrompt = options.systemPrompt || AGENT_683_SYSTEM_PROMPT;
 
-    this.inputSubject = new Subject<string>();
     this.outputSubject = new Subject<Record<string, unknown>>();
-    this.audioSubject = new Subject<{ audioBytes: Buffer; promptName: string; contentName: string }>();
-
     this.isActive = false;
 
     this.sessionId = uuidv4();
-    this.promptName = uuidv4();
-    this.contentName = uuidv4();
-    this.audioContentName = uuidv4();
 
-    this.displayAssistantText = false;
+    // Use HTTP/2 handler (critical for bidirectional streaming!)
+    const nodeHttp2Handler = new NodeHttp2Handler({
+      requestTimeout: 300000,
+      sessionTimeout: 300000,
+      disableConcurrentStreams: false,
+      maxConcurrentStreams: 20,
+    });
 
     this.bedrockClient = new BedrockRuntimeClient({
       region: this.region,
@@ -64,6 +70,7 @@ export class NovaSonicClient {
         accessKeyId: config.aws.accessKeyId || '',
         secretAccessKey: config.aws.secretAccessKey || '',
       },
+      requestHandler: nodeHttp2Handler,
     });
 
     logger.info(`NovaSonicClient initialized with session_id: ${this.sessionId}`);
@@ -74,32 +81,111 @@ export class NovaSonicClient {
     try {
       logger.info(`Attempting to connect to Bedrock model: ${this.modelId}`);
 
-      const command = new InvokeModelWithBidirectionalStreamCommand({
-        modelId: this.modelId,
-      });
-
-      this.streamResponse = await this.bedrockClient.send(command);
-      logger.info('Successfully connected to Bedrock');
-
-      this.isActive = true;
+      // Initialize session data
+      this.sessionData = {
+        queue: [],
+        queueSignal: new Subject<void>(),
+        closeSignal: new Subject<void>(),
+        isActive: true,
+        promptName: uuidv4(),
+        audioContentId: uuidv4(),
+      };
 
       // Send initialization events
-      await this.sendInitializationEvents();
-
-      // Start processing responses
-      this.processResponses();
-
-      // Subscribe to input events
-      this.inputSubject.subscribe({
-        next: async (event) => await this.sendRawEvent(event),
-        error: (err) => logger.error(`Input stream error: ${err}`),
+      this.queueEvent({
+        event: {
+          sessionStart: {
+            inferenceConfiguration: {
+              maxTokens: config.novaSonic.maxTokens,
+              topP: config.novaSonic.topP,
+              temperature: config.novaSonic.temperature,
+            },
+          },
+        },
       });
 
-      // Subscribe to audio chunks
-      this.audioSubject.subscribe({
-        next: async (data) => await this.handleAudioInput(data),
-        error: (err) => logger.error(`Audio stream error: ${err}`),
+      const toolDefinitions = getToolDefinitions();
+
+      this.queueEvent({
+        event: {
+          promptStart: {
+            promptName: this.sessionData.promptName,
+            textOutputConfiguration: {
+              mediaType: 'text/plain',
+            },
+            audioOutputConfiguration: {
+              mediaType: 'audio/lpcm',
+              sampleRateHertz: config.audio.outputSampleRate,
+              sampleSizeBits: config.audio.bitDepth,
+              channelCount: config.audio.channels,
+              voiceId: config.novaSonic.voiceId,
+              encoding: 'base64',
+              audioType: 'SPEECH',
+            },
+            toolUseOutputConfiguration: {
+              mediaType: 'application/json',
+            },
+            toolConfiguration: {
+              tools: toolDefinitions,
+            },
+          },
+        },
       });
+
+      // System prompt
+      const textPromptId = uuidv4();
+      this.queueEvent({
+        event: {
+          contentStart: {
+            promptName: this.sessionData.promptName,
+            contentName: textPromptId,
+            type: 'TEXT',
+            interactive: false,
+            role: 'SYSTEM',
+            textInputConfiguration: {
+              mediaType: 'text/plain',
+            },
+          },
+        },
+      });
+
+      this.queueEvent({
+        event: {
+          textInput: {
+            promptName: this.sessionData.promptName,
+            contentName: textPromptId,
+            content: this.systemPrompt,
+          },
+        },
+      });
+
+      this.queueEvent({
+        event: {
+          contentEnd: {
+            promptName: this.sessionData.promptName,
+            contentName: textPromptId,
+          },
+        },
+      });
+
+      // Create async iterable for input
+      const asyncIterable = this.createAsyncIterable();
+
+      logger.info('Starting bidirectional stream...');
+
+      // Start the bidirectional stream
+      const response = await this.bedrockClient.send(
+        new InvokeModelWithBidirectionalStreamCommand({
+          modelId: this.modelId,
+          body: asyncIterable,
+        })
+      );
+
+      this.isActive = true;
+      logger.info('Successfully connected to Bedrock');
+
+      // Process responses
+      this.processResponses(response);
 
       logger.info('Stream initialized successfully');
       return this;
@@ -110,134 +196,251 @@ export class NovaSonicClient {
     }
   }
 
-  private async sendInitializationEvents(): Promise<void> {
-    const sessionEvent = this.createSessionStartEvent();
-    const promptEvent = this.createPromptStartEvent();
-    const textContentStart = this.createTextContentStartEvent('SYSTEM');
-    const textContent = this.createTextInputEvent(this.systemPrompt);
-    const textContentEnd = this.createContentEndEvent(this.promptName, this.contentName);
+  private createAsyncIterable(): AsyncIterable<InvokeModelWithBidirectionalStreamInput> {
+    const session = this.sessionData;
+    if (!session) {
+      throw new Error('Session not initialized');
+    }
 
-    const initEvents = [sessionEvent, promptEvent, textContentStart, textContent, textContentEnd];
+    return {
+      [Symbol.asyncIterator]: () => {
+        return {
+          next: async (): Promise<IteratorResult<InvokeModelWithBidirectionalStreamInput>> => {
+            try {
+              if (!session.isActive) {
+                return { value: undefined, done: true };
+              }
 
-    logger.info(`Sending system prompt to Bedrock (length: ${this.systemPrompt.length} chars)`);
+              // Wait for items in queue
+              if (session.queue.length === 0) {
+                try {
+                  await Promise.race([
+                    firstValueFrom(session.queueSignal.pipe(take(1))),
+                    firstValueFrom(session.closeSignal.pipe(take(1))).then(() => {
+                      throw new Error('Stream closed');
+                    }),
+                  ]);
+                } catch (error) {
+                  if (error instanceof Error && (error.message === 'Stream closed' || !session.isActive)) {
+                    return { value: undefined, done: true };
+                  }
+                }
+              }
 
-    for (const event of initEvents) {
-      await this.sendRawEvent(event);
+              if (session.queue.length === 0 || !session.isActive) {
+                return { value: undefined, done: true };
+              }
+
+              const nextEvent = session.queue.shift();
+
+              return {
+                value: {
+                  chunk: {
+                    bytes: new TextEncoder().encode(JSON.stringify(nextEvent)),
+                  },
+                },
+                done: false,
+              };
+            } catch (error) {
+              logger.error(`Error in iterator: ${error}`);
+              session.isActive = false;
+              return { value: undefined, done: true };
+            }
+          },
+
+          return: async (): Promise<IteratorResult<InvokeModelWithBidirectionalStreamInput>> => {
+            session.isActive = false;
+            return { value: undefined, done: true };
+          },
+
+          throw: async (error: any): Promise<IteratorResult<InvokeModelWithBidirectionalStreamInput>> => {
+            session.isActive = false;
+            throw error;
+          },
+        };
+      },
+    };
+  }
+
+  private async processResponses(response: any): Promise<void> {
+    try {
+      for await (const event of response.body) {
+        if (!this.isActive) break;
+
+        if (event.chunk?.bytes) {
+          const textResponse = new TextDecoder().decode(event.chunk.bytes);
+
+          try {
+            const jsonResponse = JSON.parse(textResponse);
+
+            if (jsonResponse.error) {
+              logger.error(`Bedrock error: ${JSON.stringify(jsonResponse.error)}`);
+              this.outputSubject.next(jsonResponse);
+              continue;
+            }
+
+            if (jsonResponse.event) {
+              await this.handleResponseEvent(jsonResponse.event);
+            }
+
+            this.outputSubject.next(jsonResponse);
+          } catch (err) {
+            logger.error(`Failed to decode JSON response: ${err}`);
+            this.outputSubject.next({ raw_data: textResponse });
+          }
+        }
+      }
+
+      logger.info('Response stream processing complete');
+    } catch (error) {
+      logger.error(`Response processing error: ${error}`);
+      this.outputSubject.error(error);
+    } finally {
+      if (this.isActive) {
+        this.outputSubject.complete();
+      }
     }
   }
 
-  private createSessionStartEvent(): string {
-    return JSON.stringify({
+  private async handleResponseEvent(event: Record<string, unknown>): Promise<void> {
+    if (event.contentStart) {
+      const contentStart = event.contentStart as Record<string, unknown>;
+      this.role = contentStart.role as string;
+    } else if (event.textOutput) {
+      const textOutput = event.textOutput as Record<string, string>;
+      const textContent = textOutput.content;
+
+      if (textContent.includes('{ "interrupted" : true }')) {
+        logger.info('Barge-in detected');
+      }
+
+      if (this.role === 'ASSISTANT') {
+        logger.info(`Assistant: ${textContent}`);
+      } else if (this.role === 'USER') {
+        logger.info(`User: ${textContent}`);
+      }
+    } else if (event.toolUse) {
+      await this.handleToolUse(event.toolUse as Record<string, unknown>);
+    }
+  }
+
+  private async handleToolUse(toolUse: Record<string, unknown>): Promise<void> {
+    logger.info('='.repeat(80));
+    logger.info('🔧 TOOL USE EVENT RECEIVED');
+
+    const toolUseId = toolUse.toolUseId as string;
+    const toolName = toolUse.toolName as string;
+    const toolInputStr = (toolUse.content as string) || '{}';
+
+    let toolInput: Record<string, unknown> = {};
+    try {
+      toolInput = typeof toolInputStr === 'string' ? JSON.parse(toolInputStr) : toolInputStr;
+    } catch {
+      logger.error(`❌ Failed to parse tool input: ${toolInputStr}`);
+    }
+
+    logger.info(`  - Tool Name: ${toolName}`);
+    logger.info(`  - Tool Use ID: ${toolUseId}`);
+
+    // Emit tool invocation event
+    this.outputSubject.next({
       event: {
-        sessionStart: {
-          inferenceConfiguration: {
-            maxTokens: config.novaSonic.maxTokens,
-            topP: config.novaSonic.topP,
-            temperature: config.novaSonic.temperature,
-          },
+        toolLog: {
+          type: 'invocation',
+          toolName,
+          toolUseId,
+          input: toolInput,
         },
       },
     });
-  }
 
-  private createPromptStartEvent(): string {
-    const toolDefinitions = getToolDefinitions();
+    // Execute tool
+    let toolResult: Record<string, unknown>;
 
-    return JSON.stringify({
+    if (toolName === 'getDateTool') {
+      toolResult = {
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().split(' ')[0],
+        timezone: 'UTC',
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      toolResult = await dispatchToolCall(toolName, toolInput);
+    }
+
+    logger.info(`✅ Tool execution complete: ${toolName}`);
+
+    // Emit tool result event
+    this.outputSubject.next({
       event: {
-        promptStart: {
-          promptName: this.promptName,
-          textOutputConfiguration: {
-            mediaType: 'text/plain',
-          },
-          audioOutputConfiguration: {
-            mediaType: 'audio/lpcm',
-            sampleRateHertz: config.audio.outputSampleRate,
-            sampleSizeBits: config.audio.bitDepth,
-            channelCount: config.audio.channels,
-            voiceId: config.novaSonic.voiceId,
-            encoding: 'base64',
-            audioType: 'SPEECH',
-          },
-          toolUseOutputConfiguration: {
-            mediaType: 'application/json',
-          },
-          toolConfiguration: {
-            tools: toolDefinitions,
-          },
+        toolLog: {
+          type: 'result',
+          toolName,
+          toolUseId,
+          result: toolResult,
         },
       },
     });
+
+    // Send result back
+    await this.sendToolResult(toolUseId, toolResult);
   }
 
-  private createTextContentStartEvent(role: string): string {
-    return JSON.stringify({
+  private async sendToolResult(toolUseId: string, result: Record<string, unknown>): Promise<void> {
+    if (!this.isActive || !this.sessionData) return;
+
+    const contentId = uuidv4();
+
+    this.queueEvent({
       event: {
         contentStart: {
-          promptName: this.promptName,
-          contentName: this.contentName,
-          role,
-          type: 'TEXT',
-          interactive: true,
-          textInputConfiguration: {
-            mediaType: 'text/plain',
+          promptName: this.sessionData.promptName,
+          contentName: contentId,
+          interactive: false,
+          type: 'TOOL',
+          role: 'TOOL',
+          toolResultInputConfiguration: {
+            toolUseId,
+            type: 'TEXT',
+            textInputConfiguration: {
+              mediaType: 'text/plain',
+            },
           },
         },
       },
     });
-  }
 
-  private createTextInputEvent(content: string): string {
-    return JSON.stringify({
+    const resultContent = JSON.stringify(result);
+    this.queueEvent({
       event: {
-        textInput: {
-          promptName: this.promptName,
-          contentName: this.contentName,
-          content,
+        toolResult: {
+          promptName: this.sessionData.promptName,
+          contentName: contentId,
+          content: resultContent,
         },
       },
     });
-  }
 
-  private createContentEndEvent(promptName: string, contentName: string): string {
-    return JSON.stringify({
+    this.queueEvent({
       event: {
         contentEnd: {
-          promptName,
-          contentName,
+          promptName: this.sessionData.promptName,
+          contentName: contentId,
         },
       },
     });
-  }
 
-  async sendRawEvent(eventJson: string): Promise<void> {
-    if (!this.streamResponse || !this.isActive) {
-      logger.warn('Stream not initialized or closed');
-      return;
-    }
-
-    try {
-      const encoder = new TextEncoder();
-      const eventBytes = encoder.encode(eventJson);
-      await this.streamResponse.inputStream.write(eventBytes);
-
-      if (config.debug && eventJson.length > 200) {
-        const parsed = JSON.parse(eventJson);
-        const eventType = Object.keys(parsed.event || {})[0];
-        logger.debug(`Sent event type: ${eventType}`);
-      }
-    } catch (error) {
-      logger.error(`Error sending event: ${error}`);
-      this.inputSubject.error(error);
-    }
+    logger.info('✅ Tool result sent');
   }
 
   async sendAudioContentStartEvent(): Promise<void> {
-    const contentStartEvent = JSON.stringify({
+    if (!this.sessionData) return;
+
+    this.queueEvent({
       event: {
         contentStart: {
-          promptName: this.promptName,
-          contentName: this.audioContentName,
+          promptName: this.sessionData.promptName,
+          contentName: this.sessionData.audioContentId,
           type: 'AUDIO',
           interactive: true,
           role: 'USER',
@@ -253,287 +456,79 @@ export class NovaSonicClient {
       },
     });
 
-    await this.sendRawEvent(contentStartEvent);
     logger.debug('Audio content start event sent');
   }
 
-  private async handleAudioInput(data: {
-    audioBytes: Buffer;
-    promptName: string;
-    contentName: string;
-  }): Promise<void> {
-    try {
-      const blob = data.audioBytes.toString('base64');
-      const audioEvent = JSON.stringify({
-        event: {
-          audioInput: {
-            promptName: data.promptName,
-            contentName: data.contentName,
-            content: blob,
-          },
-        },
-      });
-
-      await this.sendRawEvent(audioEvent);
-      logger.debug(`Audio chunk sent: ${data.audioBytes.length} bytes`);
-    } catch (error) {
-      logger.error(`Error processing audio: ${error}`);
-    }
-  }
-
   addAudioChunk(audioBytes: Buffer): void {
-    this.audioSubject.next({
-      audioBytes,
-      promptName: this.promptName,
-      contentName: this.audioContentName,
+    if (!this.sessionData) return;
+
+    const base64Data = audioBytes.toString('base64');
+    this.queueEvent({
+      event: {
+        audioInput: {
+          promptName: this.sessionData.promptName,
+          contentName: this.sessionData.audioContentId,
+          content: base64Data,
+        },
+      },
     });
   }
 
   async sendAudioContentEndEvent(): Promise<void> {
-    if (!this.isActive) return;
+    if (!this.isActive || !this.sessionData) return;
 
-    const contentEndEvent = this.createContentEndEvent(this.promptName, this.audioContentName);
-    await this.sendRawEvent(contentEndEvent);
-    logger.debug('Audio content end event sent');
-  }
-
-  async sendPromptEndEvent(): Promise<void> {
-    if (!this.isActive) return;
-
-    const promptEndEvent = JSON.stringify({
+    this.queueEvent({
       event: {
-        promptEnd: {
-          promptName: this.promptName,
+        contentEnd: {
+          promptName: this.sessionData.promptName,
+          contentName: this.sessionData.audioContentId,
         },
       },
     });
 
-    await this.sendRawEvent(promptEndEvent);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    logger.debug('Audio content end event sent');
+  }
+
+  async sendPromptEndEvent(): Promise<void> {
+    if (!this.isActive || !this.sessionData) return;
+
+    this.queueEvent({
+      event: {
+        promptEnd: {
+          promptName: this.sessionData.promptName,
+        },
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
     logger.debug('Prompt end event sent');
   }
 
   async sendSessionEndEvent(): Promise<void> {
-    if (!this.isActive) return;
+    if (!this.sessionData) return;
 
-    const sessionEndEvent = JSON.stringify({
+    this.queueEvent({
       event: {
         sessionEnd: {},
       },
     });
 
-    await this.sendRawEvent(sessionEndEvent);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    this.sessionData.isActive = false;
+    this.sessionData.closeSignal.next();
+    this.sessionData.closeSignal.complete();
     this.isActive = false;
+
     logger.info('Session end event sent');
   }
 
-  private async processResponses(): Promise<void> {
-    try {
-      for await (const event of this.streamResponse.outputStream) {
-        if (!this.isActive) break;
+  private queueEvent(event: any): void {
+    if (!this.sessionData) return;
 
-        if (event.chunk?.bytes) {
-          const decoder = new TextDecoder();
-          const responseData = decoder.decode(event.chunk.bytes);
-
-          try {
-            const jsonData = JSON.parse(responseData);
-
-            if (jsonData.error) {
-              logger.error(`Bedrock error: ${JSON.stringify(jsonData.error)}`);
-              this.outputSubject.next(jsonData);
-              continue;
-            }
-
-            if (jsonData.event) {
-              await this.handleResponseEvent(jsonData.event);
-            }
-
-            this.outputSubject.next(jsonData);
-          } catch (err) {
-            logger.error(`Failed to decode JSON response: ${err}`);
-            this.outputSubject.next({ raw_data: responseData });
-          }
-        }
-      }
-    } catch (error) {
-      logger.error(`Response processing error: ${error}`);
-      this.outputSubject.error(error);
-    } finally {
-      if (this.isActive) {
-        this.outputSubject.complete();
-      }
-    }
-  }
-
-  private async handleResponseEvent(event: Record<string, unknown>): Promise<void> {
-    // Content start
-    if (event.contentStart) {
-      const contentStart = event.contentStart as Record<string, unknown>;
-      this.role = contentStart.role as string;
-    }
-
-    // Text output
-    else if (event.textOutput) {
-      const textOutput = event.textOutput as Record<string, string>;
-      const textContent = textOutput.content;
-
-      // Check for barge-in
-      if (textContent.includes('{ "interrupted" : true }')) {
-        logger.info('Barge-in detected');
-      }
-
-      if (this.role === 'ASSISTANT' && this.displayAssistantText) {
-        logger.info(`Assistant: ${textContent}`);
-      } else if (this.role === 'USER') {
-        logger.info(`User: ${textContent}`);
-      }
-    }
-
-    // Tool use
-    else if (event.toolUse) {
-      await this.handleToolUse(event.toolUse as Record<string, unknown>);
-    }
-  }
-
-  private async handleToolUse(toolUse: Record<string, unknown>): Promise<void> {
-    logger.info('='.repeat(80));
-    logger.info('🔧 TOOL USE EVENT RECEIVED');
-    logger.info(`Full toolUse structure: ${JSON.stringify(toolUse, null, 2)}`);
-    logger.info('='.repeat(80));
-
-    const toolUseId = toolUse.toolUseId as string;
-    const toolName = toolUse.toolName as string;
-    const toolInputStr = (toolUse.content as string) || '{}';
-
-    let toolInput: Record<string, unknown> = {};
-    try {
-      toolInput =
-        typeof toolInputStr === 'string' ? JSON.parse(toolInputStr) : toolInputStr;
-    } catch {
-      logger.error(`❌ Failed to parse tool input: ${toolInputStr}`);
-    }
-
-    logger.info(`🔧 TOOL INVOCATION:`);
-    logger.info(`  - Tool Name: ${toolName}`);
-    logger.info(`  - Tool Use ID: ${toolUseId}`);
-    logger.info(`  - Tool Input: ${JSON.stringify(toolInput, null, 4)}`);
-
-    // Emit tool invocation event to frontend
-    this.outputSubject.next({
-      event: {
-        toolLog: {
-          type: 'invocation',
-          toolName,
-          toolUseId,
-          input: toolInput,
-        },
-      },
-    });
-
-    // Execute tool
-    let toolResult: Record<string, unknown>;
-
-    // Handle getDateTool locally
-    if (toolName === 'getDateTool') {
-      logger.info('📅 Executing getDateTool (built-in)...');
-      toolResult = {
-        date: new Date().toISOString().split('T')[0],
-        time: new Date().toTimeString().split(' ')[0],
-        timezone: 'UTC',
-        timestamp: new Date().toISOString(),
-      };
-      logger.info(`✅ getDateTool result: ${JSON.stringify(toolResult, null, 4)}`);
-    } else {
-      logger.info(`⚙️  Executing tool: ${toolName}...`);
-      toolResult = await dispatchToolCall(toolName, toolInput);
-      logger.info(`✅ Tool execution complete!`);
-      logger.info(`  - Tool Result: ${JSON.stringify(toolResult, null, 4)}`);
-    }
-
-    // Emit tool result event to frontend
-    this.outputSubject.next({
-      event: {
-        toolLog: {
-          type: 'result',
-          toolName,
-          toolUseId,
-          result: toolResult,
-        },
-      },
-    });
-
-    // Send result back to Nova Sonic
-    await this.sendToolResult(toolUseId, toolResult);
-  }
-
-  private async sendToolResult(
-    toolUseId: string,
-    toolResult: Record<string, unknown>
-  ): Promise<void> {
-    logger.info('📤 send_tool_result() called');
-    logger.info(`  - Tool Use ID: ${toolUseId}`);
-    logger.info(`  - Result Preview: ${JSON.stringify(toolResult, null, 4).substring(0, 500)}...`);
-
-    if (!this.isActive) {
-      logger.warn('⚠️  Cannot send tool result - stream not active');
-      return;
-    }
-
-    try {
-      const toolResultContentName = uuidv4();
-
-      // Content start for TOOL result
-      const contentStartEvent = JSON.stringify({
-        event: {
-          contentStart: {
-            promptName: this.promptName,
-            contentName: toolResultContentName,
-            role: 'TOOL',
-            type: 'TOOL',
-            interactive: false,
-            toolResultInputConfiguration: {
-              toolUseId,
-              type: 'TEXT',
-              textInputConfiguration: {
-                mediaType: 'text/plain',
-              },
-            },
-          },
-        },
-      });
-
-      await this.sendRawEvent(contentStartEvent);
-
-      // Tool result data
-      const resultContent = JSON.stringify(toolResult);
-      const toolResultEvent = JSON.stringify({
-        event: {
-          toolResult: {
-            promptName: this.promptName,
-            contentName: toolResultContentName,
-            content: resultContent,
-          },
-        },
-      });
-
-      await this.sendRawEvent(toolResultEvent);
-
-      // Content end
-      const contentEndEvent = this.createContentEndEvent(this.promptName, toolResultContentName);
-      await this.sendRawEvent(contentEndEvent);
-
-      logger.info('='.repeat(80));
-      logger.info('✅ TOOL RESULT FULLY TRANSMITTED');
-      logger.info(`  - Tool Use ID: ${toolUseId}`);
-      logger.info(`  - Result Length: ${resultContent.length} chars`);
-      logger.info('='.repeat(80));
-    } catch (error) {
-      logger.error('='.repeat(80));
-      logger.error('❌ ERROR SENDING TOOL RESULT');
-      logger.error(`  - Tool Use ID: ${toolUseId}`);
-      logger.error(`  - Error: ${error}`);
-      logger.error('='.repeat(80));
-    }
+    this.sessionData.queue.push(event);
+    this.sessionData.queueSignal.next();
   }
 
   async *getEventsStream(): AsyncGenerator<Record<string, unknown>, void, unknown> {
@@ -559,7 +554,6 @@ export class NovaSonicClient {
             yield event;
           }
         } else {
-          // Wait a bit before checking again
           await new Promise((resolve) => setTimeout(resolve, 10));
         }
       }
@@ -574,18 +568,10 @@ export class NovaSonicClient {
 
     logger.info('Closing Nova Sonic client');
 
-    this.inputSubject.complete();
-    this.audioSubject.complete();
-
     await this.sendAudioContentEndEvent();
     await this.sendPromptEndEvent();
     await this.sendSessionEndEvent();
 
-    if (this.streamResponse?.inputStream) {
-      await this.streamResponse.inputStream.end();
-    }
-
     logger.info('Nova Sonic client closed');
   }
 }
-

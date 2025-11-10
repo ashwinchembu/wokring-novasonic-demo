@@ -5,6 +5,7 @@
 import logger from './logger';
 import config from './config';
 import { lookupHcpId, HCP_NAME_TO_ID_MAP } from './prompting';
+import redshiftClient from './redshift';
 
 // ============================================================================
 // Tool Handlers
@@ -31,8 +32,34 @@ export async function handleLookupHcpTool(
     };
   }
 
-  // Try static map (Redshift integration can be added later)
+  // Track where we searched
+  let searchedInRedshift = false;
+  let searchedInStatic = false;
+
+  // Try Redshift first if available
+  if (redshiftClient.isAvailable()) {
+    logger.info('🗄️  Trying Redshift database lookup...');
+    searchedInRedshift = true;
+    const result = await redshiftClient.lookupHcp(name);
+    if (result.found) {
+      logger.info('✅ FOUND IN REDSHIFT!');
+      logger.info(`  - HCP Name: ${result.name}`);
+      logger.info(`  - HCP ID: ${result.hcp_id}`);
+      logger.info(`  - HCO ID: ${result.hco_id}`);
+      logger.info(`  - HCO Name: ${result.hco_name}`);
+      return {
+        ...result,
+        source: 'redshift',
+      };
+    }
+    logger.info('   Not found in Redshift, trying static map...');
+  } else {
+    logger.info('⚠️  Redshift not available, using static map');
+  }
+
+  // Fallback to static map
   logger.info('📋 Trying static map lookup...');
+  searchedInStatic = true;
   const hcpId = lookupHcpId(name);
   if (hcpId) {
     // Find the full name from the static map
@@ -53,19 +80,28 @@ export async function handleLookupHcpTool(
       hcp_id: hcpId,
       hco_id: null,
       hco_name: null,
-      source: 'static',
+      source: 'static_map',
     };
   }
 
-  // Not found
-  logger.warn('❌ HCP NOT FOUND in static map');
+  // Not found anywhere - return source info about where we searched
+  const searchSources = [];
+  if (searchedInRedshift) searchSources.push('redshift');
+  if (searchedInStatic) searchSources.push('static_map');
+  
+  const sourceInfo = searchSources.length > 0 
+    ? `searched_in: ${searchSources.join(', ')}` 
+    : 'no_sources_available';
+
+  logger.warn('❌ HCP NOT FOUND in any source');
   logger.info(`  - Searched name: '${name}'`);
+  logger.info(`  - Sources checked: ${sourceInfo}`);
   return {
     found: false,
     hcp_id: null,
     hco_id: null,
     hco_name: null,
-    source: null,
+    source: sourceInfo,
   };
 }
 
@@ -81,17 +117,38 @@ export async function handleInsertCallTool(
     };
   }
 
-  logger.info('Tool: insertCallTool - persisting call record');
+  logger.info('💾 Tool: insertCallTool - persisting call record');
+  logger.info(`   Record: ${JSON.stringify(record, null, 2)}`);
 
   try {
-    // TODO: Implement actual Redshift insert
-    // For now, generate a mock call_pk
-    const callPk = `CALL_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    // Try Redshift first if available
+    if (redshiftClient.isAvailable()) {
+      logger.info('🗄️  Inserting to Redshift...');
+      const result = await redshiftClient.insertCall(record);
+      
+      if (result.ok) {
+        logger.info(`✅ Call persisted to Redshift: ${result.call_id}`);
+        return {
+          ok: true,
+          call_pk: result.call_id,
+          source: 'redshift',
+        };
+      } else {
+        logger.error(`❌ Failed to insert to Redshift: ${result.error}`);
+        // Fall through to mock implementation
+      }
+    } else {
+      logger.warn('⚠️  Redshift not available, using mock insert');
+    }
 
-    logger.info(`✅ Call persisted: ${callPk}`);
+    // Fallback: generate mock call_pk
+    const callPk = `CALL_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    logger.info(`✅ Call persisted (mock): ${callPk}`);
+    
     return {
       ok: true,
       call_pk: callPk,
+      source: 'mock',
     };
   } catch (error) {
     logger.error(`Failed to insert call: ${error}`);

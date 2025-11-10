@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Sonic Voice Test - Node.js</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .recording {
+            animation: recording-pulse 1s infinite;
+        }
+
+        @keyframes recording-pulse {
+            0%, 100% { background: #dc3545; }
+            50% { background: #ff6b7a; }
+        }
+
+        .transcript-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .transcript-entry {
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .transcript-entry.user {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .transcript-entry.assistant {
+            background: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+
+        .transcript-entry.tool {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            font-size: 0.9em;
+        }
+
+        .speaker-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+
+        .timestamp {
+            font-size: 0.75em;
+            opacity: 0.6;
+            margin-left: 10px;
+        }
+
+        .hcp-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .hcp-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hcp-item:last-child {
+            border-bottom: none;
+        }
+
+        .hcp-name {
+            font-weight: 500;
+        }
+
+        .hcp-id {
+            font-size: 0.85em;
+            color: #666;
+            font-family: monospace;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-box h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .audio-visualizer {
+            height: 60px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 10px;
+        }
+
+        .audio-bar {
+            width: 4px;
+            background: #667eea;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Nova Sonic Voice Test</h1>
+            <p>Node.js/TypeScript Edition</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Session Control -->
+            <div class="card">
+                <h2>🔧 Session Control</h2>
+                
+                <div class="status">
+                    <div class="status-indicator" id="connectionStatus"></div>
+                    <span id="statusText">Not Connected</span>
+                </div>
+
+                <div class="info-box">
+                    <h3>Session Info</h3>
+                    <div id="sessionInfo">No active session</div>
+                </div>
+
+                <div class="button-group">
+                    <button id="startSession" class="btn-primary">
+                        ▶️ Start Session
+                    </button>
+                    <button id="endSession" class="btn-danger" disabled>
+                        ⏹️ End Session
+                    </button>
+                </div>
+
+                <div class="audio-visualizer" id="visualizer">
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                </div>
+
+                <div class="button-group">
+                    <button id="startRecording" class="btn-success" disabled>
+                        🎙️ Start Recording
+                    </button>
+                    <button id="stopRecording" class="btn-danger" disabled>
+                        ⏸️ Stop Recording
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="audioChunks">0</div>
+                        <div class="stat-label">Audio Chunks</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="transcripts">0</div>
+                        <div class="stat-label">Transcripts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="audioResponses">0</div>
+                        <div class="stat-label">Audio Resp.</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="toolCalls">0</div>
+                        <div class="stat-label">Tool Calls</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HCP List -->
+            <div class="card">
+                <h2>👨‍⚕️ Healthcare Professionals</h2>
+                <div class="info-box">
+                    <h3>Available HCPs</h3>
+                    <p>Say a doctor's name to test the lookup tool</p>
+                </div>
+                <div class="hcp-list" id="hcpList">
+                    <p style="text-align: center; color: #666;">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Transcript Display -->
+            <div class="card full-width">
+                <h2>💬 Conversation Transcript</h2>
+                <div class="transcript-area" id="transcriptArea">
+                    <p style="text-align: center; color: #666;">
+                        Start a session and begin recording to see the conversation here...
+                    </p>
+                </div>
+                <button id="clearTranscript" class="btn-primary" style="width: 100%;">
+                    🗑️ Clear Transcript
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'http://localhost:8001';
+        
+        // State
+        let sessionId = null;
+        let eventSource = null;
+        let mediaRecorder = null;
+        let audioContext = null;
+        let isRecording = false;
+        
+        // Shared audio playback context and queue
+        let playbackContext = null;
+        let audioQueue = [];
+        let isPlayingAudio = false;
+        let nextStartTime = 0;
+        let scheduledSources = [];
+        
+        // Stats
+        let stats = {
+            audioChunks: 0,
+            transcripts: 0,
+            audioResponses: 0,
+            toolCalls: 0
+        };
+
+        // DOM Elements
+        const startSessionBtn = document.getElementById('startSession');
+        const endSessionBtn = document.getElementById('endSession');
+        const startRecordingBtn = document.getElementById('startRecording');
+        const stopRecordingBtn = document.getElementById('stopRecording');
+        const clearTranscriptBtn = document.getElementById('clearTranscript');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('statusText');
+        const sessionInfo = document.getElementById('sessionInfo');
+        const transcriptArea = document.getElementById('transcriptArea');
+        const hcpList = document.getElementById('hcpList');
+
+        // Load HCP list
+        async function loadHCPs() {
+            try {
+                const response = await fetch(`${API_BASE}/hcp/list`);
+                const data = await response.json();
+                
+                hcpList.innerHTML = '';
+                data.hcps.forEach(hcp => {
+                    const item = document.createElement('div');
+                    item.className = 'hcp-item';
+                    item.innerHTML = `
+                        <span class="hcp-name">${hcp.name}</span>
+                        <span class="hcp-id">${hcp.id}</span>
+                    `;
+                    hcpList.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Failed to load HCPs:', error);
+                hcpList.innerHTML = '<p style="color: red; text-align: center;">Failed to load HCPs</p>';
+            }
+        }
+
+        // Start session
+        async function startSession() {
+            try {
+                const response = await fetch(`${API_BASE}/session/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+                
+                const data = await response.json();
+                sessionId = data.sessionId;
+                
+                updateStatus('connected', `Session: ${sessionId.substring(0, 8)}...`);
+                sessionInfo.innerHTML = `
+                    <strong>Session ID:</strong> ${sessionId}<br>
+                    <strong>Status:</strong> ${data.status}<br>
+                    <strong>Created:</strong> ${new Date(data.createdAt).toLocaleTimeString()}
+                `;
+                
+                startSessionBtn.disabled = true;
+                endSessionBtn.disabled = false;
+                startRecordingBtn.disabled = false;
+                
+                // Start SSE stream
+                startEventStream();
+                
+                addTranscript('system', '✅ Session started successfully');
+            } catch (error) {
+                console.error('Failed to start session:', error);
+                alert('Failed to start session: ' + error.message);
+            }
+        }
+
+        // End session
+        async function endSession() {
+            try {
+                if (isRecording) {
+                    stopRecording();
+                }
+                
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+                
+                // Cleanup audio playback - matches Python implementation
+                audioQueue = [];
+                isPlayingAudio = false;
+                nextStartTime = 0;
+                
+                // Stop all scheduled sources
+                scheduledSources.forEach(source => {
+                    try { 
+                        source.stop(); 
+                        source.disconnect();
+                    } catch (e) {
+                        // Source may have already finished
+                    }
+                });
+                scheduledSources = [];
+                
+                // Close audio context
+                if (playbackContext) {
+                    await playbackContext.close();
+                    playbackContext = null;
+                }
+                
+                if (sessionId) {
+                    await fetch(`${API_BASE}/session/${sessionId}`, {
+                        method: 'DELETE'
+                    });
+                }
+                
+                sessionId = null;
+                updateStatus('disconnected', 'Not Connected');
+                sessionInfo.innerHTML = 'No active session';
+                
+                startSessionBtn.disabled = false;
+                endSessionBtn.disabled = true;
+                startRecordingBtn.disabled = true;
+                stopRecordingBtn.disabled = true;
+                
+                addTranscript('system', '⏹️ Session ended');
+            } catch (error) {
+                console.error('Failed to end session:', error);
+            }
+        }
+
+        // Start event stream (SSE)
+        function startEventStream() {
+            if (!sessionId) return;
+            
+            eventSource = new EventSource(`${API_BASE}/events/stream/${sessionId}`);
+            
+            eventSource.addEventListener('transcript', (e) => {
+                const data = JSON.parse(e.data);
+                addTranscript(data.speaker, data.text, data.timestamp);
+                updateStat('transcripts');
+            });
+            
+            eventSource.addEventListener('audio', (e) => {
+                const data = JSON.parse(e.data);
+                playAudio(data.audioData);
+                updateStat('audioResponses');
+            });
+            
+            eventSource.addEventListener('tool_log', (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'tool_invocation') {
+                    addTranscript('tool', `🔧 Tool: ${data.toolName}\nInput: ${JSON.stringify(data.input, null, 2)}`);
+                } else if (data.type === 'tool_result') {
+                    addTranscript('tool', `✅ Result: ${data.toolName}\n${JSON.stringify(data.result, null, 2)}`);
+                }
+                updateStat('toolCalls');
+            });
+            
+            eventSource.addEventListener('error', (e) => {
+                console.error('SSE error:', e);
+                if (eventSource && eventSource.readyState === EventSource.CLOSED) {
+                    addTranscript('system', '❌ Stream closed');
+                }
+            });
+            
+            eventSource.addEventListener('content_start', (e) => {
+                const data = JSON.parse(e.data);
+                console.log('Content start:', data.role);
+            });
+        }
+
+        // Start recording
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        channelCount: 1,
+                        sampleRate: 16000
+                    } 
+                });
+                
+                audioContext = new AudioContext({ sampleRate: 16000 });
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                processor.onaudioprocess = async (e) => {
+                    if (!isRecording) return;
+                    
+                    const audioData = e.inputBuffer.getChannelData(0);
+                    const pcmData = new Int16Array(audioData.length);
+                    
+                    for (let i = 0; i < audioData.length; i++) {
+                        pcmData[i] = Math.max(-32768, Math.min(32767, audioData[i] * 32768));
+                    }
+                    
+                    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)));
+                    
+                    // Send to API
+                    await fetch(`${API_BASE}/audio/chunk`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sessionId: sessionId,
+                            audioData: base64Audio,
+                            format: 'pcm',
+                            sampleRate: 16000,
+                            channels: 1
+                        })
+                    });
+                    
+                    updateStat('audioChunks');
+                    animateVisualizer(audioData);
+                };
+                
+                isRecording = true;
+                startRecordingBtn.disabled = true;
+                stopRecordingBtn.disabled = false;
+                startRecordingBtn.classList.add('recording');
+                
+                addTranscript('system', '🎙️ Recording started');
+            } catch (error) {
+                console.error('Failed to start recording:', error);
+                alert('Failed to start recording: ' + error.message);
+            }
+        }
+
+        // Stop recording
+        async function stopRecording() {
+            try {
+                isRecording = false;
+                
+                if (audioContext) {
+                    await audioContext.close();
+                    audioContext = null;
+                }
+                
+                // Send audio end event
+                await fetch(`${API_BASE}/audio/end`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: sessionId })
+                });
+                
+                startRecordingBtn.disabled = false;
+                stopRecordingBtn.disabled = true;
+                startRecordingBtn.classList.remove('recording');
+                
+                addTranscript('system', '⏸️ Recording stopped');
+            } catch (error) {
+                console.error('Failed to stop recording:', error);
+            }
+        }
+
+        // Initialize playback context (call once on first audio)
+        function initPlaybackContext() {
+            if (!playbackContext) {
+                playbackContext = new AudioContext({ sampleRate: 24000 });
+            }
+            return playbackContext;
+        }
+        
+        // Play audio response - matches working Python implementation
+        async function playAudio(base64Audio) {
+            // Add to queue
+            audioQueue.push(base64Audio);
+            
+            // Start processing if not already playing
+            if (!isPlayingAudio) {
+                isPlayingAudio = true;
+                const ctx = initPlaybackContext();
+                nextStartTime = ctx.currentTime;
+                processAudioQueue();
+            }
+        }
+        
+        // Process audio queue - matches Python's sequential processing
+        async function processAudioQueue() {
+            const ctx = playbackContext;
+            if (!ctx) {
+                console.error('Audio context not initialized');
+                return;
+            }
+            
+            // Process all chunks in queue
+            while (audioQueue.length > 0) {
+                const base64Audio = audioQueue.shift();
+                
+                try {
+                    // Decode base64 to binary
+                    const binaryString = atob(base64Audio);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    // Convert to Int16Array (PCM data)
+                    const int16Array = new Int16Array(bytes.buffer);
+                    
+                    // Create audio buffer
+                    const audioBuffer = ctx.createBuffer(1, int16Array.length, 24000);
+                    const channelData = audioBuffer.getChannelData(0);
+                    
+                    // Normalize PCM data with clamping (prevents distortion)
+                    for (let i = 0; i < int16Array.length; i++) {
+                        channelData[i] = Math.max(-1, Math.min(1, int16Array[i] / 32768.0));
+                    }
+                    
+                    // Create source with gain node for volume control
+                    const source = ctx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    
+                    const gainNode = ctx.createGain();
+                    gainNode.gain.value = 1.0;
+                    
+                    source.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    
+                    // Schedule this chunk - if nextStartTime is in the past, play immediately
+                    const playTime = Math.max(nextStartTime, ctx.currentTime);
+                    source.start(playTime);
+                    
+                    // Update next play time (NO OVERLAP - just add duration exactly)
+                    const bufferDuration = audioBuffer.duration;
+                    nextStartTime = playTime + bufferDuration;
+                    
+                    console.log(`Scheduled audio: ${int16Array.length} samples at ${playTime.toFixed(3)}s, duration: ${bufferDuration.toFixed(3)}s, next: ${nextStartTime.toFixed(3)}s`);
+                    
+                    // Track source
+                    scheduledSources.push(source);
+                    
+                    // If this is the last chunk, set up onended callback
+                    if (audioQueue.length === 0) {
+                        source.onended = () => {
+                            // Remove from scheduled sources
+                            const index = scheduledSources.indexOf(source);
+                            if (index > -1) {
+                                scheduledSources.splice(index, 1);
+                            }
+                            
+                            // Wait a bit to see if more chunks arrive
+                            setTimeout(() => {
+                                if (audioQueue.length === 0) {
+                                    isPlayingAudio = false;
+                                    nextStartTime = 0;
+                                    console.log('Audio playback complete');
+                                } else {
+                                    // More chunks arrived, continue processing
+                                    processAudioQueue();
+                                }
+                            }, 50);
+                        };
+                    } else {
+                        // Not last chunk, just track for cleanup
+                        source.onended = () => {
+                            const index = scheduledSources.indexOf(source);
+                            if (index > -1) {
+                                scheduledSources.splice(index, 1);
+                            }
+                        };
+                    }
+                    
+                } catch (error) {
+                    console.error('Error playing audio chunk:', error);
+                }
+                
+                // Small delay between scheduling chunks
+                if (audioQueue.length > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+            }
+        }
+
+        // Add transcript entry
+        function addTranscript(speaker, text, timestamp = null) {
+            const entry = document.createElement('div');
+            entry.className = `transcript-entry ${speaker}`;
+            
+            const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+            
+            entry.innerHTML = `
+                <div class="speaker-label">
+                    ${speaker}
+                    <span class="timestamp">${time}</span>
+                </div>
+                <div>${text}</div>
+            `;
+            
+            transcriptArea.appendChild(entry);
+            transcriptArea.scrollTop = transcriptArea.scrollHeight;
+        }
+
+        // Update status
+        function updateStatus(status, text) {
+            if (status === 'connected') {
+                connectionStatus.classList.add('connected');
+            } else {
+                connectionStatus.classList.remove('connected');
+            }
+            statusText.textContent = text;
+        }
+
+        // Update stats
+        function updateStat(stat) {
+            stats[stat]++;
+            document.getElementById(stat).textContent = stats[stat];
+        }
+
+        // Animate visualizer
+        function animateVisualizer(audioData) {
+            const bars = document.querySelectorAll('.audio-bar');
+            const rms = Math.sqrt(audioData.reduce((sum, val) => sum + val * val, 0) / audioData.length);
+            
+            bars.forEach((bar, i) => {
+                const height = Math.min(50, Math.max(5, rms * 500 + Math.random() * 10));
+                bar.style.height = `${height}px`;
+            });
+        }
+
+        // Event listeners
+        startSessionBtn.addEventListener('click', startSession);
+        endSessionBtn.addEventListener('click', endSession);
+        startRecordingBtn.addEventListener('click', startRecording);
+        stopRecordingBtn.addEventListener('click', stopRecording);
+        clearTranscriptBtn.addEventListener('click', () => {
+            transcriptArea.innerHTML = '<p style="text-align: center; color: #666;">Transcript cleared</p>';
+            stats = { audioChunks: 0, transcripts: 0, audioResponses: 0, toolCalls: 0 };
+            Object.keys(stats).forEach(key => {
+                document.getElementById(key).textContent = '0';
+            });
+        });
+
+        // Initialize
+        loadHCPs();
+        
+        console.log('🎤 Nova Sonic Voice Test Loaded');
+        console.log('API Base:', API_BASE);
+    </script>
+</body>
+</html>
+

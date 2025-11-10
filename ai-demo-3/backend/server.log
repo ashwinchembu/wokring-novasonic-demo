@@ -3409,3 +3409,41 @@ Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
 2025-11-07 00:17:34,052 - app.services.session_manager - INFO - Session ended: ca873321-4b74-490c-92dc-39d6f37d5f48
 2025-11-07 00:17:34,052 - app.services.session_manager - INFO - Cleaning up inactive session: e8ac8561-0fb0-4f09-94d3-bf26c175c8af
 2025-11-07 00:17:34,052 - app.services.nova_sonic_client - INFO - Closing Nova Sonic client
+INFO:     127.0.0.1:53700 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53729 - "GET / HTTP/1.1" 200 OK
+2025-11-07 14:57:24,608 - app.prompting - INFO - Found exact match for HCP: Dr. William Harper -> 0013K000013ez2RQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Susan Carter -> 0013K000013ez2SQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. James Lawson -> 0013K000013ez2TQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Emily Hughes -> 0013K000013ez2UQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Richard Thompson -> 0013K000013ez2VQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Sarah Phillips -> 0013K000013ez2WQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. John Anderson -> 0013K000013ez2XQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Lisa Collins -> 0013K000013ez2YQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. David Harris -> 0013K000013ez2ZQAQ
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Amy Scott -> 0013K000013ez2aQAA
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Olivia Wells -> 0013K000013ez2bQAA
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Benjamin Stone -> 0013K000013ez2cQAA
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Grace Mitchell -> 0013K000013ez2dQAA
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Lucas Chang -> 0013K000013ez2eQAA
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Sophia Patel -> 0013K000013ez2fQAA
+2025-11-07 14:57:24,610 - app.prompting - INFO - Found exact match for HCP: Dr. Nathan Rivera -> 0013K000013ez2gQAA
+INFO:     127.0.0.1:53765 - "GET /hcp/list HTTP/1.1" 200 OK
+2025-11-07 14:57:29,128 - app.prompting - INFO - Found exact match for HCP: Dr. William Harper -> 0013K000013ez2RQAQ
+INFO:     127.0.0.1:53785 - "GET /hcp/lookup?name=William HTTP/1.1" 200 OK
+2025-11-07 14:57:36,077 - app.services.nova_sonic_client - INFO - NovaSonicClient initialized with session_id: ea8c709a-9d4b-41a4-835c-4f395f000355
+2025-11-07 14:57:36,078 - app.services.nova_sonic_client - INFO - System prompt length: 2521 chars
+2025-11-07 14:57:36,087 - app.services.nova_sonic_client - INFO - Bedrock client initialized for region: us-east-1
+2025-11-07 14:57:36,087 - app.services.nova_sonic_client - INFO - Attempting to connect to Bedrock model: amazon.nova-sonic-v1:0
+2025-11-07 14:57:36,103 - app.services.nova_sonic_client - INFO - Successfully connected to Bedrock
+2025-11-07 14:57:36,104 - app.services.nova_sonic_client - INFO - Sending system prompt to Bedrock (length: 2521 chars)
+2025-11-07 14:57:36,109 - app.services.nova_sonic_client - INFO - Stream initialized successfully
+2025-11-07 14:57:36,109 - app.services.session_manager - INFO - Session created: ea8c709a-9d4b-41a4-835c-4f395f000355
+2025-11-07 14:57:36,110 - app.main - INFO - Session started: ea8c709a-9d4b-41a4-835c-4f395f000355
+INFO:     127.0.0.1:53821 - "POST /session/start HTTP/1.1" 200 OK
+2025-11-07 14:58:34,920 - app.services.nova_sonic_client - ERROR - Error receiving response: Timed out waiting for input events
+INFO:     127.0.0.1:54159 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54159 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57411 - "GET /test-v2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57411 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61948 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62007 - "GET /hcp/lookup?name=Karina%20Soto HTTP/1.1" 200 OK

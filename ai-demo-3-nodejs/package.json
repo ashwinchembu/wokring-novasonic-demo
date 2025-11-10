@@ -22,10 +22,12 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.666.0",
     "@smithy/eventstream-codec": "^3.1.2",
-    "@smithy/types": "^3.3.0",
+    "@smithy/node-http-handler": "^4.4.4",
+    "@smithy/types": "^3.7.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "pg": "^8.16.3",
     "rxjs": "^7.8.1",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
@@ -48,4 +50,3 @@
     "node": ">=18.0.0"
   }
 }
-

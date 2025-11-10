@@ -4,9 +4,11 @@
  */
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
 import config from './config';
 import logger from './logger';
 import { sessionManager } from './services/sessionManager';
+import redshiftClient from './redshift';
 import {
   SessionStartRequest,
   AudioChunkRequest,
@@ -28,6 +30,9 @@ const app = express();
 app.use(cors({ origin: config.cors.origins, credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files from public directory
+app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -53,6 +58,10 @@ app.get('/health', (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0',
   });
+});
+
+app.get('/test', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'voice-test.html'));
 });
 
 // ============================================================================
@@ -517,7 +526,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Server Startup
 // ============================================================================
 
-const server = app.listen(config.app.port, config.app.host, () => {
+const server = app.listen(config.app.port, config.app.host, async () => {
   logger.info('='.repeat(80));
   logger.info('AI Demo 3 - Nova Sonic API (Node.js)');
   logger.info('='.repeat(80));
@@ -526,6 +535,9 @@ const server = app.listen(config.app.port, config.app.host, () => {
   logger.info(`AWS Region: ${config.aws.region}`);
   logger.info(`Bedrock Model: ${config.bedrock.modelId}`);
   logger.info('='.repeat(80));
+
+  // Initialize Redshift connection
+  await redshiftClient.initialize();
 
   // Start cleanup task
   sessionManager.startCleanupTask();
@@ -536,6 +548,7 @@ process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully...');
   server.close(async () => {
     await sessionManager.shutdown();
+    await redshiftClient.close();
     logger.info('Server closed');
     process.exit(0);
   });
@@ -545,6 +558,7 @@ process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully...');
   server.close(async () => {
     await sessionManager.shutdown();
+    await redshiftClient.close();
     logger.info('Server closed');
     process.exit(0);
   });

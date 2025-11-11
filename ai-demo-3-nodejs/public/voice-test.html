@@ -282,6 +282,47 @@
             grid-column: 1 / -1;
         }
 
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #dee2e6;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .text-input-container {
+            margin-top: 15px;
+        }
+
+        #textInput {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            resize: vertical;
+        }
+
+        #textInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -322,11 +363,24 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎤 Nova Sonic Voice Test</h1>
-            <p>Node.js/TypeScript Edition</p>
+            <h1>🤖 AI Agent Test</h1>
+            <p>Node.js/TypeScript Edition - Voice & Text</p>
         </div>
 
         <div class="main-content">
+            <!-- Mode Selector -->
+            <div class="card full-width">
+                <h2>🔀 Mode Selection</h2>
+                <div class="mode-selector">
+                    <button id="voiceModeBtn" class="mode-btn active">
+                        🎤 Voice Mode (Nova Sonic)
+                    </button>
+                    <button id="textModeBtn" class="mode-btn">
+                        💬 Text Mode (Claude)
+                    </button>
+                </div>
+            </div>
+
             <!-- Session Control -->
             <div class="card">
                 <h2>🔧 Session Control</h2>
@@ -350,24 +404,37 @@
                     </button>
                 </div>
 
-                <div class="audio-visualizer" id="visualizer">
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
-                    <div class="audio-bar"></div>
+                <!-- Voice Mode Controls -->
+                <div id="voiceControls">
+                    <div class="audio-visualizer" id="visualizer">
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="startRecording" class="btn-success" disabled>
+                            🎙️ Start Recording
+                        </button>
+                        <button id="stopRecording" class="btn-danger" disabled>
+                            ⏸️ Stop Recording
+                        </button>
+                    </div>
                 </div>
 
-                <div class="button-group">
-                    <button id="startRecording" class="btn-success" disabled>
-                        🎙️ Start Recording
-                    </button>
-                    <button id="stopRecording" class="btn-danger" disabled>
-                        ⏸️ Stop Recording
-                    </button>
+                <!-- Text Mode Controls -->
+                <div id="textControls" style="display: none;">
+                    <div class="text-input-container">
+                        <textarea id="textInput" placeholder="Type your message here..." rows="4"></textarea>
+                        <button id="sendMessage" class="btn-primary" disabled style="width: 100%; margin-top: 10px;">
+                            📤 Send Message
+                        </button>
+                    </div>
                 </div>
 
                 <div class="stats">
@@ -422,6 +489,7 @@
         const API_BASE = 'http://localhost:8001';
         
         // State
+        let currentMode = 'voice'; // 'voice' or 'text'
         let sessionId = null;
         let eventSource = null;
         let mediaRecorder = null;
@@ -444,16 +512,46 @@
         };
 
         // DOM Elements
+        const voiceModeBtn = document.getElementById('voiceModeBtn');
+        const textModeBtn = document.getElementById('textModeBtn');
+        const voiceControls = document.getElementById('voiceControls');
+        const textControls = document.getElementById('textControls');
         const startSessionBtn = document.getElementById('startSession');
         const endSessionBtn = document.getElementById('endSession');
         const startRecordingBtn = document.getElementById('startRecording');
         const stopRecordingBtn = document.getElementById('stopRecording');
+        const sendMessageBtn = document.getElementById('sendMessage');
+        const textInput = document.getElementById('textInput');
         const clearTranscriptBtn = document.getElementById('clearTranscript');
         const connectionStatus = document.getElementById('connectionStatus');
         const statusText = document.getElementById('statusText');
         const sessionInfo = document.getElementById('sessionInfo');
         const transcriptArea = document.getElementById('transcriptArea');
         const hcpList = document.getElementById('hcpList');
+
+        // Mode switching
+        function switchMode(mode) {
+            if (sessionId) {
+                alert('Please end the current session before switching modes');
+                return;
+            }
+
+            currentMode = mode;
+
+            if (mode === 'voice') {
+                voiceModeBtn.classList.add('active');
+                textModeBtn.classList.remove('active');
+                voiceControls.style.display = 'block';
+                textControls.style.display = 'none';
+            } else {
+                textModeBtn.classList.add('active');
+                voiceModeBtn.classList.remove('active');
+                textControls.style.display = 'block';
+                voiceControls.style.display = 'none';
+            }
+
+            console.log(`Switched to ${mode} mode`);
+        }
 
         // Load HCP list
         async function loadHCPs() {
@@ -477,10 +575,11 @@
             }
         }
 
-        // Start session
+        // Start session (unified for both modes)
         async function startSession() {
             try {
-                const response = await fetch(`${API_BASE}/session/start`, {
+                const endpoint = currentMode === 'voice' ? '/session/start' : '/text/session/start';
+                const response = await fetch(`${API_BASE}${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({})
@@ -493,8 +592,10 @@
                 const data = await response.json();
                 sessionId = data.sessionId;
                 
-                updateStatus('connected', `Session: ${sessionId.substring(0, 8)}...`);
+                const modeLabel = currentMode === 'voice' ? 'Voice (Nova Sonic)' : 'Text (Claude)';
+                updateStatus('connected', `${modeLabel}: ${sessionId.substring(0, 8)}...`);
                 sessionInfo.innerHTML = `
+                    <strong>Mode:</strong> ${modeLabel}<br>
                     <strong>Session ID:</strong> ${sessionId}<br>
                     <strong>Status:</strong> ${data.status}<br>
                     <strong>Created:</strong> ${new Date(data.createdAt).toLocaleTimeString()}
@@ -502,12 +603,18 @@
                 
                 startSessionBtn.disabled = true;
                 endSessionBtn.disabled = false;
-                startRecordingBtn.disabled = false;
                 
-                // Start SSE stream
-                startEventStream();
+                if (currentMode === 'voice') {
+                    startRecordingBtn.disabled = false;
+                    // Start SSE stream for voice mode
+                    startEventStream();
+                } else {
+                    sendMessageBtn.disabled = false;
+                    textInput.disabled = false;
+                    textInput.focus();
+                }
                 
-                addTranscript('system', '✅ Session started successfully');
+                addTranscript('system', `✅ ${modeLabel} session started successfully`);
             } catch (error) {
                 console.error('Failed to start session:', error);
                 alert('Failed to start session: ' + error.message);
@@ -517,39 +624,40 @@
         // End session
         async function endSession() {
             try {
-                if (isRecording) {
-                    stopRecording();
-                }
-                
-                if (eventSource) {
-                    eventSource.close();
-                    eventSource = null;
-                }
-                
-                // Cleanup audio playback - matches Python implementation
-                audioQueue = [];
-                isPlayingAudio = false;
-                nextStartTime = 0;
-                
-                // Stop all scheduled sources
-                scheduledSources.forEach(source => {
-                    try { 
-                        source.stop(); 
-                        source.disconnect();
-                    } catch (e) {
-                        // Source may have already finished
+                if (currentMode === 'voice') {
+                    if (isRecording) {
+                        stopRecording();
                     }
-                });
-                scheduledSources = [];
-                
-                // Close audio context
-                if (playbackContext) {
-                    await playbackContext.close();
-                    playbackContext = null;
+                    
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                    
+                    // Cleanup audio playback
+                    audioQueue = [];
+                    isPlayingAudio = false;
+                    nextStartTime = 0;
+                    
+                    scheduledSources.forEach(source => {
+                        try { 
+                            source.stop(); 
+                            source.disconnect();
+                        } catch (e) {
+                            // Source may have already finished
+                        }
+                    });
+                    scheduledSources = [];
+                    
+                    if (playbackContext) {
+                        await playbackContext.close();
+                        playbackContext = null;
+                    }
                 }
                 
                 if (sessionId) {
-                    await fetch(`${API_BASE}/session/${sessionId}`, {
+                    const endpoint = currentMode === 'voice' ? `/session/${sessionId}` : `/text/session/${sessionId}`;
+                    await fetch(`${API_BASE}${endpoint}`, {
                         method: 'DELETE'
                     });
                 }
@@ -562,6 +670,8 @@
                 endSessionBtn.disabled = true;
                 startRecordingBtn.disabled = true;
                 stopRecordingBtn.disabled = true;
+                sendMessageBtn.disabled = true;
+                textInput.disabled = true;
                 
                 addTranscript('system', '⏹️ Session ended');
             } catch (error) {
@@ -849,6 +959,104 @@
             document.getElementById(stat).textContent = stats[stat];
         }
 
+        // Send text message
+        async function sendTextMessage() {
+            const message = textInput.value.trim();
+            if (!message) return;
+
+            try {
+                sendMessageBtn.disabled = true;
+                textInput.disabled = true;
+
+                // Add user message to transcript
+                addTranscript('user', message);
+                textInput.value = '';
+
+                // Set up SSE connection for streaming response
+                const response = await fetch(`${API_BASE}/text/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, message })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                if (!response.body) {
+                    throw new Error('Response body is null - server may not support streaming');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let currentAssistantMessage = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+
+                        const eventMatch = line.match(/^event: (\w+)\ndata: (.+)$/s);
+                        if (!eventMatch) continue;
+
+                        const [, eventType, dataStr] = eventMatch;
+                        const data = JSON.parse(dataStr);
+
+                        if (eventType === 'text') {
+                            currentAssistantMessage += data.content;
+                            // Update the last transcript entry (or create if first chunk)
+                            const entries = transcriptArea.querySelectorAll('.transcript-entry.assistant');
+                            const lastEntry = entries[entries.length - 1];
+                            
+                            if (lastEntry && lastEntry.dataset.streamId === sessionId) {
+                                lastEntry.querySelector('div:last-child').textContent = currentAssistantMessage;
+                            } else {
+                                const entry = document.createElement('div');
+                                entry.className = 'transcript-entry assistant';
+                                entry.dataset.streamId = sessionId;
+                                entry.innerHTML = `
+                                    <div class="speaker-label">
+                                        assistant
+                                        <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                                    </div>
+                                    <div>${currentAssistantMessage}</div>
+                                `;
+                                transcriptArea.appendChild(entry);
+                            }
+                            transcriptArea.scrollTop = transcriptArea.scrollHeight;
+                            updateStat('transcripts');
+                        } else if (eventType === 'tool_use') {
+                            addTranscript('tool', `🔧 Tool: ${data.toolName}\nInput: ${JSON.stringify(data.input, null, 2)}`);
+                            updateStat('toolCalls');
+                        } else if (eventType === 'tool_result') {
+                            addTranscript('tool', `✅ Result: ${data.toolName}\n${JSON.stringify(data.result, null, 2)}`);
+                        } else if (eventType === 'complete') {
+                            currentAssistantMessage = '';
+                        } else if (eventType === 'error') {
+                            addTranscript('system', `❌ Error: ${data.message}`);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Failed to send message:', error);
+                addTranscript('system', `❌ Error sending message: ${error.message}`);
+            } finally {
+                sendMessageBtn.disabled = false;
+                textInput.disabled = false;
+                textInput.focus();
+            }
+        }
+
         // Animate visualizer
         function animateVisualizer(audioData) {
             const bars = document.querySelectorAll('.audio-bar');
@@ -861,10 +1069,19 @@
         }
 
         // Event listeners
+        voiceModeBtn.addEventListener('click', () => switchMode('voice'));
+        textModeBtn.addEventListener('click', () => switchMode('text'));
         startSessionBtn.addEventListener('click', startSession);
         endSessionBtn.addEventListener('click', endSession);
         startRecordingBtn.addEventListener('click', startRecording);
         stopRecordingBtn.addEventListener('click', stopRecording);
+        sendMessageBtn.addEventListener('click', sendTextMessage);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendTextMessage();
+            }
+        });
         clearTranscriptBtn.addEventListener('click', () => {
             transcriptArea.innerHTML = '<p style="text-align: center; color: #666;">Transcript cleared</p>';
             stats = { audioChunks: 0, transcripts: 0, audioResponses: 0, toolCalls: 0 };
@@ -876,8 +1093,9 @@
         // Initialize
         loadHCPs();
         
-        console.log('🎤 Nova Sonic Voice Test Loaded');
+        console.log('🤖 AI Agent Test Loaded');
         console.log('API Base:', API_BASE);
+        console.log('Modes: Voice (Nova Sonic), Text (Claude)');
     </script>
 </body>
 </html>

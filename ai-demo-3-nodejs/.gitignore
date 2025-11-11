@@ -8,10 +8,28 @@ pnpm-lock.yaml
 dist/
 build/
 
-# Environment variables
+# Environment variables (NEVER commit these!)
 .env
+.env.*
 .env.local
-.env.*.local
+.env.development
+.env.production
+.env.test
+.env.staging
+*.env
+.env.backup
+.env.example.local
+
+# AWS Credentials (NEVER commit these!)
+.aws/
+aws-credentials.json
+credentials.json
+**/aws-config.json
+
+# Sensitive files
+secrets.json
+secrets.yml
+config.local.*
 
 # Logs
 logs/
@@ -39,4 +57,8 @@ coverage/
 .cache/
 temp/
 tmp/
+
+# Test and helper scripts that might contain credentials
+test-*.js
+check-*.js
 

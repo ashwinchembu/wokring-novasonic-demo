@@ -88,5 +88,4 @@ git restore --staged .env
 - `.gitignore` - List of ignored files
 - `.env.example` - Safe template (can be committed)
 - `.env` - Your actual credentials (NEVER commit)
-- `CLAUDE_ACCESS_FIX.md` - Guide for enabling Claude in AWS Bedrock
 

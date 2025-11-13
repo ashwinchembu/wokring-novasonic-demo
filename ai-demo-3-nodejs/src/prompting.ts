@@ -11,19 +11,25 @@ import logger from './logger';
 export const AGENT_683_SYSTEM_PROMPT = `You are an AI Assistant for a Sales Rep in their CRM platform which is Veeva CRM. You are helping the field sales person execute several tasks like summarizing the interaction with the HCPs or creating a follow-up task after the interaction. For an interaction to be recorded, the HCP name , a date and time , a Product is needed, any additional information is summarized into Call notes.
 
 TOOL USAGE POLICY:
-- When the user asks whether an HCP exists or mentions a doctor's name, FIRST invoke the lookupHcpTool with the provided name.
+- When the user asks whether an HCP exists or mentions a doctor's name, FIRST invoke the lookupHcpTool with the properly formatted name.
+- IMPORTANT: When parsing names, understand natural speech patterns:
+  * "with a k" or "with a K" means the first name starts with K (e.g., "Karina with a k" = "Karina", not "Carolina")
+  * "with a c" means the first name starts with C
+  * Remove phrases like "with a k", "with a c", "spelled with" from the actual search
+  * Convert "doctor" to "Dr." format (e.g., "doctor john smith" → search for "Dr. John Smith")
+  * Use proper capitalization for names
 - If the tool returns found=true, use the returned hcp_id and name to populate the interaction record.
 - If the tool returns found=false, politely inform the user that the HCP was not found and ask them to verify the name or provide additional details.
 - When asked about the current date or time, use the getDateTool to provide accurate information.
 - Always wait for tool results before proceeding with the conversation.
 
-PERSISTENCE & EVENT WORKFLOW:
+PERSISTENCE WORKFLOW:
 - After slot-filling is complete and you have read back the summary to the user for confirmation, proceed with the following workflow:
   1. Call insertCallTool with the final JSON record to persist the call to the database.
-  2. If insertCallTool returns ok=true, immediately call emitN8nEventTool with eventType="call.saved" and include the saved call_pk in the payload.
-  3. If the JSON includes a follow-up task (call_follow_up_task.task_type is present), call createFollowUpTaskTool after persistence.
-  4. Always run assistant text through guardrails before emitting (this is handled automatically by the system).
+  2. If the JSON includes a follow-up task (call_follow_up_task.task_type is present), call createFollowUpTaskTool after persistence.
+  3. Always run assistant text through guardrails before emitting (this is handled automatically by the system).
 - Only perform these tool calls AFTER the user confirms the summary. Do not persist incomplete or unconfirmed data.
+- NOTE: N8N event emission is currently disabled. Do NOT call emitN8nEventTool.
 
 When a user provides an HCP name, use the lookupHcpTool to verify the HCP exists and get their ID. In case any of the required information is missing please ask the user for that information using voice conversations until all of the information is complete. Once the user provides all information, summarize it back to them and format it as JSON.
 
@@ -50,6 +56,7 @@ export const HCP_NAME_TO_ID_MAP: Record<string, string> = {
   'Dr. Lucas Chang': '0013K000013ez2eQAA',
   'Dr. Sophia Patel': '0013K000013ez2fQAA',
   'Dr. Nathan Rivera': '0013K000013ez2gQAA',
+  'Dr. Karina Soto': '0013K000013ez2hQAA',
 };
 
 // Case-insensitive lookup
@@ -69,12 +76,12 @@ export const OUTPUT_JSON_SCHEMA = {
   account: '',
   id: '',
   adverse_event: false,
-  adverse_event_details: null,
+  adverse_event_details: '',
   noncompliance_event: false,
   noncompliance_description: '',
   call_notes: '',
-  call_date: null,
-  call_time: null,
+  call_date: '',
+  call_time: '',
   product: '',
   call_follow_up_task: {
     task_type: '',
@@ -255,14 +262,14 @@ export class ConversationSession {
 
     output.account = this.slots.hcp_name || '';
     output.id = this.slots.hcp_id || '';
-    output.call_date = this.slots.date || null;
-    output.call_time = this.slots.time || null;
+    output.call_date = this.slots.date || '';
+    output.call_time = this.slots.time || '';
     output.product = this.slots.product || '';
     output.call_notes = this.slots.call_notes || '';
     output.discussion_topic = this.slots.discussion_topic || '';
 
     output.adverse_event = this.slots.adverse_event || false;
-    output.adverse_event_details = this.slots.adverse_event_details || null;
+    output.adverse_event_details = this.slots.adverse_event_details || '';
     output.noncompliance_event = this.slots.noncompliance_event || false;
     output.noncompliance_description = this.slots.noncompliance_description || '';
 

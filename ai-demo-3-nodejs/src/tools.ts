@@ -290,7 +290,7 @@ export async function dispatchToolCall(
   const handlers: Record<string, (args: Record<string, unknown>) => Promise<Record<string, unknown>>> = {
     lookupHcpTool: handleLookupHcpTool,
     insertCallTool: handleInsertCallTool,
-    emitN8nEventTool: handleEmitN8nEventTool,
+    // emitN8nEventTool: handleEmitN8nEventTool, // Disabled for now
     createFollowUpTaskTool: handleCreateFollowUpTaskTool,
   };
 
@@ -388,29 +388,30 @@ export function getToolDefinitions(): Array<Record<string, unknown>> {
         },
       },
     },
-    {
-      toolSpec: {
-        name: 'emitN8nEventTool',
-        description:
-          'POST the saved calls row + session metadata to an n8n Webhook. Use this tool after successfully inserting a call to trigger automation workflows.',
-        inputSchema: {
-          json: JSON.stringify({
-            type: 'object',
-            properties: {
-              eventType: {
-                type: 'string',
-                description: "Event type (e.g., 'call.saved', 'call.updated')",
-              },
-              payload: {
-                type: 'object',
-                description: 'Event payload data',
-              },
-            },
-            required: ['eventType', 'payload'],
-          }),
-        },
-      },
-    },
+    // N8N tool disabled for now
+    // {
+    //   toolSpec: {
+    //     name: 'emitN8nEventTool',
+    //     description:
+    //       'POST the saved calls row + session metadata to an n8n Webhook. Use this tool after successfully inserting a call to trigger automation workflows.',
+    //     inputSchema: {
+    //       json: JSON.stringify({
+    //         type: 'object',
+    //         properties: {
+    //           eventType: {
+    //             type: 'string',
+    //             description: "Event type (e.g., 'call.saved', 'call.updated')",
+    //           },
+    //           payload: {
+    //             type: 'object',
+    //             description: 'Event payload data',
+    //           },
+    //         },
+    //         required: ['eventType', 'payload'],
+    //       }),
+    //     },
+    //   },
+    // },
     {
       toolSpec: {
         name: 'createFollowUpTaskTool',

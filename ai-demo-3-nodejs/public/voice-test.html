@@ -349,6 +349,259 @@
             margin-top: 5px;
         }
 
+        .json-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.95em;
+        }
+
+        .json-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .json-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .json-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .json-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .json-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .field-name {
+            font-weight: 600;
+            color: #333;
+            font-family: monospace;
+        }
+
+        .field-value {
+            color: #666;
+            word-break: break-word;
+        }
+
+        .field-value.empty {
+            color: #ccc;
+            font-style: italic;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-collected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-missing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-required {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .nested-table {
+            margin: 5px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .nested-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .nested-field-name {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .nested-field-value {
+            color: #777;
+        }
+
+        .history-table tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-table tbody tr:hover {
+            background: #e3f2fd !important;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .history-table .row-number {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .history-table .timestamp {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-incomplete {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            margin: 0 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-view {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Modal for viewing JSON */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.2);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .json-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #333;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -356,6 +609,15 @@
             
             .stats {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .json-table {
+                font-size: 0.85em;
+            }
+
+            .json-table th,
+            .json-table td {
+                padding: 8px;
             }
         }
     </style>
@@ -458,6 +720,97 @@
                     🗑️ Clear Transcript
                 </button>
             </div>
+
+            <!-- Call Log JSON Table -->
+            <div class="card full-width">
+                <h2>📊 Call Log Data (Live)</h2>
+                <div class="info-box">
+                    <h3>Collected Information</h3>
+                    <p>Watch as the AI extracts information during the conversation</p>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="json-table" id="callLogTable">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="callLogTableBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #666; padding: 20px;">
+                                    No data collected yet. Start a conversation to see information populate.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button id="exportJson" class="btn-primary" style="flex: 1;">
+                        💾 Save & Export JSON
+                    </button>
+                    <button id="clearCallLog" class="btn-danger" style="flex: 1;">
+                        🗑️ Clear Current
+                    </button>
+                    <button id="testSaveBtn" class="btn-success" style="flex: 1;" onclick="testManualSave()">
+                        🧪 Test Save
+                    </button>
+                </div>
+            </div>
+
+            <!-- Call History Table -->
+            <div class="card full-width">
+                <h2>📚 Call History</h2>
+                <div class="info-box">
+                    <h3>Saved Call Logs</h3>
+                    <p>All exported calls appear here. Click any row to view full JSON.</p>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="json-table history-table" id="callHistoryTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Timestamp</th>
+                                <th>HCP Name</th>
+                                <th>Product</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="callHistoryTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #666; padding: 20px;">
+                                    No saved calls yet. Export your first call to see it here.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button id="refreshHistory" class="btn-success" style="flex: 1;">
+                        🔄 Refresh from Redshift
+                    </button>
+                    <button id="exportAllHistory" class="btn-primary" style="flex: 1;">
+                        📥 Export All as JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON View Modal -->
+    <div id="jsonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Call Log Details</h3>
+                <button class="modal-close" onclick="closeJsonModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre id="jsonDisplay" class="json-display"></pre>
+            </div>
         </div>
     </div>
 
@@ -487,6 +840,36 @@
             toolCalls: 0
         };
 
+        // Call log data tracking
+        let callLogData = {
+            call_channel: '',
+            discussion_topic: '',
+            status: '',
+            account: '',
+            id: '',
+            adverse_event: false,
+            adverse_event_details: null,
+            noncompliance_event: false,
+            noncompliance_description: '',
+            call_notes: '',
+            call_date: null,
+            call_time: null,
+            product: '',
+            hcp_name: '',
+            hcp_id: '',
+            call_follow_up_task: {
+                task_type: '',
+                description: '',
+                due_date: '',
+                assigned_to: ''
+            }
+        };
+
+        const requiredFields = ['hcp_name', 'call_date', 'call_time', 'product'];
+
+        // Call history storage
+        let callHistory = [];
+
         // DOM Elements
         const startSessionBtn = document.getElementById('startSession');
         const endSessionBtn = document.getElementById('endSession');
@@ -498,6 +881,8 @@
         const sessionInfo = document.getElementById('sessionInfo');
         const transcriptArea = document.getElementById('transcriptArea');
         const hcpList = document.getElementById('hcpList');
+        const exportJsonBtn = document.getElementById('exportJson');
+        const clearCallLogBtn = document.getElementById('clearCallLog');
 
         // Load HCP list
         async function loadHCPs() {
@@ -547,10 +932,10 @@
                 
                 startSessionBtn.disabled = true;
                 endSessionBtn.disabled = false;
-                startRecordingBtn.disabled = false;
+                    startRecordingBtn.disabled = false;
                 
                 // Start SSE stream
-                startEventStream();
+                    startEventStream();
                 
                 addTranscript('system', '✅ Nova Sonic session started successfully');
             } catch (error) {
@@ -562,33 +947,33 @@
         // End session
         async function endSession() {
             try {
-                if (isRecording) {
-                    stopRecording();
-                }
-                
-                if (eventSource) {
-                    eventSource.close();
-                    eventSource = null;
-                }
-                
-                // Cleanup audio playback
-                audioQueue = [];
-                isPlayingAudio = false;
-                nextStartTime = 0;
-                
-                scheduledSources.forEach(source => {
-                    try { 
-                        source.stop(); 
-                        source.disconnect();
-                    } catch (e) {
-                        // Source may have already finished
+                    if (isRecording) {
+                        stopRecording();
                     }
-                });
-                scheduledSources = [];
-                
-                if (playbackContext) {
-                    await playbackContext.close();
-                    playbackContext = null;
+                    
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                    
+                    // Cleanup audio playback
+                    audioQueue = [];
+                    isPlayingAudio = false;
+                    nextStartTime = 0;
+                    
+                    scheduledSources.forEach(source => {
+                        try { 
+                            source.stop(); 
+                            source.disconnect();
+                        } catch (e) {
+                            // Source may have already finished
+                        }
+                    });
+                    scheduledSources = [];
+                    
+                    if (playbackContext) {
+                        await playbackContext.close();
+                        playbackContext = null;
                 }
                 
                 if (sessionId) {
@@ -621,6 +1006,7 @@
             eventSource.addEventListener('transcript', (e) => {
                 const data = JSON.parse(e.data);
                 addTranscript(data.speaker, data.text, data.timestamp);
+                parseTranscriptForData(data.text, data.speaker);
                 updateStat('transcripts');
             });
             
@@ -636,6 +1022,7 @@
                     addTranscript('tool', `🔧 Tool: ${data.toolName}\nInput: ${JSON.stringify(data.input, null, 2)}`);
                 } else if (data.type === 'tool_result') {
                     addTranscript('tool', `✅ Result: ${data.toolName}\n${JSON.stringify(data.result, null, 2)}`);
+                    handleToolResult(data.toolName, data.result);
                 }
                 updateStat('toolCalls');
             });
@@ -903,6 +1290,620 @@
             });
         }
 
+        // Update call log table
+        function updateCallLogTable() {
+            const tbody = document.getElementById('callLogTableBody');
+            tbody.innerHTML = '';
+
+            const fieldLabels = {
+                hcp_name: 'HCP Name',
+                hcp_id: 'HCP ID',
+                call_date: 'Call Date',
+                call_time: 'Call Time',
+                product: 'Product',
+                call_channel: 'Call Channel',
+                discussion_topic: 'Discussion Topic',
+                status: 'Status',
+                account: 'Account',
+                id: 'Record ID',
+                call_notes: 'Call Notes',
+                adverse_event: 'Adverse Event',
+                adverse_event_details: 'AE Details',
+                noncompliance_event: 'Noncompliance Event',
+                noncompliance_description: 'Noncompliance Description'
+            };
+
+            // Main fields
+            for (const [key, label] of Object.entries(fieldLabels)) {
+                const value = callLogData[key];
+                const hasValue = value !== null && value !== '' && value !== false;
+                const isRequired = requiredFields.includes(key);
+                
+                let statusClass, statusText;
+                if (hasValue) {
+                    statusClass = 'status-collected';
+                    statusText = '✓ Collected';
+                } else if (isRequired) {
+                    statusClass = 'status-required';
+                    statusText = '! Required';
+                } else {
+                    statusClass = 'status-missing';
+                    statusText = '○ Empty';
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="field-name">${label}</td>
+                    <td class="field-value ${!hasValue ? 'empty' : ''}">
+                        ${hasValue ? (typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value) : '(not set)'}
+                    </td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                `;
+                tbody.appendChild(row);
+            }
+
+            // Follow-up task (nested)
+            const task = callLogData.call_follow_up_task;
+            const hasTask = task.task_type || task.description || task.due_date || task.assigned_to;
+            
+            const taskRow = document.createElement('tr');
+            taskRow.innerHTML = `
+                <td class="field-name">Follow-up Task</td>
+                <td colspan="2">
+                    ${hasTask ? `
+                        <div class="nested-table">
+                            <div class="nested-field">
+                                <span class="nested-field-name">Task Type:</span>
+                                <span class="nested-field-value">${task.task_type || '(not set)'}</span>
+                            </div>
+                            <div class="nested-field">
+                                <span class="nested-field-name">Description:</span>
+                                <span class="nested-field-value">${task.description || '(not set)'}</span>
+                            </div>
+                            <div class="nested-field">
+                                <span class="nested-field-name">Due Date:</span>
+                                <span class="nested-field-value">${task.due_date || '(not set)'}</span>
+                            </div>
+                            <div class="nested-field">
+                                <span class="nested-field-name">Assigned To:</span>
+                                <span class="nested-field-value">${task.assigned_to || '(not set)'}</span>
+                            </div>
+                        </div>
+                    ` : '<span class="field-value empty">(no follow-up task)</span>'}
+                </td>
+            `;
+            tbody.appendChild(taskRow);
+        }
+
+        // Parse transcript for data extraction
+        function parseTranscriptForData(text, speaker) {
+            if (speaker !== 'assistant') return;
+
+            let dataUpdated = false;
+
+            // Look for HCP name mentions
+            const hcpMatch = text.match(/(?:found|identified|confirmed)\s+(?:Dr\.|Doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
+            if (hcpMatch && !callLogData.hcp_name) {
+                callLogData.hcp_name = 'Dr. ' + hcpMatch[1];
+                dataUpdated = true;
+                console.log('✅ Extracted HCP name from text:', callLogData.hcp_name);
+                updateCallLogTable();
+            }
+
+            // Look for dates
+            const dateMatch = text.match(/\b(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|today|yesterday)\b/i);
+            if (dateMatch && !callLogData.call_date) {
+                callLogData.call_date = dateMatch[1];
+                dataUpdated = true;
+                console.log('✅ Extracted date from text:', callLogData.call_date);
+                updateCallLogTable();
+            }
+
+            // Look for time
+            const timeMatch = text.match(/\b(\d{1,2}:\d{2}\s*(?:AM|PM)?)\b/i);
+            if (timeMatch && !callLogData.call_time) {
+                callLogData.call_time = timeMatch[1];
+                dataUpdated = true;
+                console.log('✅ Extracted time from text:', callLogData.call_time);
+                updateCallLogTable();
+            }
+
+            // Look for product mentions (improved patterns)
+            const productPatterns = [
+                // "product is X" or "medication is X"
+                /(?:product|medication|drug|treatment)\s+(?:is|was)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
+                // "discussed X" or "about X" (capturing capitalized words only)
+                /(?:discussed|about)\s+([A-Z][a-z]{3,}(?:\s+[A-Z][a-z]+)?)/,
+                // "Product: X" or "Medication: X"
+                /(?:product|medication|drug|treatment):\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i
+            ];
+            
+            for (const pattern of productPatterns) {
+                const match = text.match(pattern);
+                if (match && !callLogData.product) {
+                    // Clean up the product name (remove common filler words)
+                    let productName = match[1].trim();
+                    // Remove words like "was", "is", "discussed", etc.
+                    productName = productName.replace(/^(was|is|discussed|about|the)\s+/gi, '');
+                    
+                    if (productName.length > 2) {
+                        callLogData.product = productName;
+                        dataUpdated = true;
+                        console.log('✅ Extracted product from text:', callLogData.product);
+                        updateCallLogTable();
+                        break;
+                    }
+                }
+            }
+
+            // Check if we should auto-save after parsing
+            if (dataUpdated) {
+                checkAutoSave();
+            }
+        }
+
+        // Handle tool results for data extraction
+        function handleToolResult(toolName, result) {
+            console.log('🔧 handleToolResult:', toolName, result);
+            
+            let dataUpdated = false;
+            
+            if (toolName === 'lookupHcpTool' && result.found) {
+                if (result.name && !callLogData.hcp_name) {
+                    callLogData.hcp_name = result.name;
+                    dataUpdated = true;
+                    console.log('✅ Updated hcp_name:', result.name);
+                }
+                if (result.hcp_id && !callLogData.hcp_id) {
+                    callLogData.hcp_id = result.hcp_id;
+                    dataUpdated = true;
+                    console.log('✅ Updated hcp_id:', result.hcp_id);
+                }
+                if (result.hco_name && !callLogData.account) {
+                    callLogData.account = result.hco_name;
+                    dataUpdated = true;
+                    console.log('✅ Updated account:', result.hco_name);
+                }
+                updateCallLogTable();
+            } else if (toolName === 'getDateTool') {
+                if (result.date && !callLogData.call_date) {
+                    callLogData.call_date = result.date;
+                    dataUpdated = true;
+                    console.log('✅ Updated call_date:', result.date);
+                }
+                if (result.time && !callLogData.call_time) {
+                    callLogData.call_time = result.time;
+                    dataUpdated = true;
+                    console.log('✅ Updated call_time:', result.time);
+                }
+                updateCallLogTable();
+            } else if (toolName === 'insertCallTool') {
+                // When AI persists the call to Redshift, save to local history
+                if (result.ok) {
+                    console.log('🎯 insertCallTool succeeded! Auto-saving to history...');
+                    
+                    // Cancel any pending auto-save timeout
+                    if (window.autoSaveTimeout) {
+                        clearTimeout(window.autoSaveTimeout);
+                        window.autoSaveTimeout = null;
+                    }
+                    
+                    // Immediately save to history
+                    autoSaveCallLog();
+                            } else {
+                    console.log('⚠️  insertCallTool failed:', result.error);
+                }
+                return; // Don't check auto-save, we already handled it
+            }
+            
+            // Check if we should auto-save
+            if (dataUpdated) {
+                checkAutoSave();
+            }
+        }
+        
+        // Check if all required fields are collected and auto-save
+        function checkAutoSave() {
+            const hasAllRequired = requiredFields.every(field => {
+                const value = callLogData[field];
+                return value && value !== '' && value !== null;
+            });
+            
+            if (hasAllRequired) {
+                console.log('🎯 All required fields collected!', {
+                    hcp_name: callLogData.hcp_name,
+                    call_date: callLogData.call_date,
+                    call_time: callLogData.call_time,
+                    product: callLogData.product
+                });
+                
+                // Auto-save after a short delay (to allow for more data collection)
+                if (!window.autoSaveTimeout) {
+                    console.log('⏱️  Auto-save scheduled in 5 seconds...');
+                    window.autoSaveTimeout = setTimeout(() => {
+                        autoSaveCallLog();
+                        window.autoSaveTimeout = null;
+                    }, 5000);
+                }
+            } else {
+                const missing = requiredFields.filter(field => {
+                    const value = callLogData[field];
+                    return !value || value === '' || value === null;
+                });
+                console.log('⚠️  Missing required fields:', missing);
+            }
+        }
+        
+        // Auto-save call log
+        function autoSaveCallLog() {
+            console.log('💾 AUTO-SAVING call log...');
+            
+            // Check if we already saved this data
+            const lastSaved = callHistory.length > 0 ? callHistory[callHistory.length - 1] : null;
+            if (lastSaved && lastSaved.session_id === sessionId) {
+                console.log('ℹ️  Call already saved for this session, skipping auto-save');
+                return;
+            }
+            
+            // Create a copy with timestamp
+            const callLogCopy = {
+                ...callLogData,
+                exported_at: new Date().toISOString(),
+                session_id: sessionId,
+                auto_saved: true
+            };
+
+            // Add to history
+            callHistory.push(callLogCopy);
+            console.log('✅ Auto-saved to history. Total calls:', callHistory.length);
+            
+            // Update history table
+            updateCallHistoryTable();
+            
+            // Save to localStorage
+            saveHistoryToLocalStorage();
+            
+            // Show notification in transcript
+            addTranscript('system', `💾 Call log #${callHistory.length} auto-saved! (All required fields collected)`);
+            
+            // Show visual notification
+            showNotification('Call Log Auto-Saved!', 'success');
+        }
+        
+        // Show notification banner
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#28a745' : '#667eea'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Export JSON and save to history
+        function exportCallLogJson() {
+            console.log('📥 exportCallLogJson called');
+            console.log('Current callLogData:', callLogData);
+            console.log('Current callHistory length:', callHistory.length);
+            
+            // Create a copy with timestamp
+            const callLogCopy = {
+                ...callLogData,
+                exported_at: new Date().toISOString(),
+                session_id: sessionId
+            };
+
+            console.log('Call log copy created:', callLogCopy);
+
+            // Add to history
+            callHistory.push(callLogCopy);
+            console.log('Added to history. New length:', callHistory.length);
+            
+            // Update history table
+            updateCallHistoryTable();
+            console.log('History table updated');
+            
+            // Download JSON file
+            const jsonStr = JSON.stringify(callLogCopy, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            a.download = `call-log-${timestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log('JSON file downloaded');
+            
+            addTranscript('system', `💾 Call log #${callHistory.length} saved and exported`);
+            
+            // Save to localStorage
+            saveHistoryToLocalStorage();
+            console.log('✅ Saved to localStorage');
+            console.log('Verification - localStorage has:', localStorage.getItem('callHistory') ? 'data' : 'nothing');
+        }
+
+        // Clear call log
+        function clearCallLogData() {
+            callLogData = {
+                call_channel: '',
+                discussion_topic: '',
+                status: '',
+                account: '',
+                id: '',
+                adverse_event: false,
+                adverse_event_details: null,
+                noncompliance_event: false,
+                noncompliance_description: '',
+                call_notes: '',
+                call_date: null,
+                call_time: null,
+                product: '',
+                hcp_name: '',
+                hcp_id: '',
+                call_follow_up_task: {
+                    task_type: '',
+                    description: '',
+                    due_date: '',
+                    assigned_to: ''
+                }
+            };
+            updateCallLogTable();
+            addTranscript('system', '🗑️ Call log data cleared');
+        }
+
+        // Update call history table
+        function updateCallHistoryTable() {
+            const tbody = document.getElementById('callHistoryTableBody');
+            
+            if (callHistory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #666; padding: 20px;">
+                            No saved calls yet. Calls from Redshift will appear here.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            callHistory.forEach((log, index) => {
+                const hasAllRequired = requiredFields.every(field => log[field]);
+                const statusClass = hasAllRequired ? 'status-complete' : 'status-incomplete';
+                const statusText = hasAllRequired ? '✓ Complete' : '⚠ Incomplete';
+                
+                const timestamp = new Date(log.created_at || log.exported_at || Date.now()).toLocaleString();
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="row-number">${index + 1}</td>
+                    <td class="timestamp">${timestamp}</td>
+                    <td>${log.hcp_name || '(not set)'}</td>
+                    <td>${log.product || '(not set)'}</td>
+                    <td>${log.call_date || '(not set)'}</td>
+                    <td>${log.call_time || '(not set)'}</td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="action-btn btn-view" onclick="viewCallLog(${index})" title="View JSON">👁️</button>
+                        <button class="action-btn btn-download" onclick="downloadSingleLog(${index})" title="Download">💾</button>
+                        <button class="action-btn btn-delete" onclick="deleteFromHistory(${index})" title="Delete">🗑️</button>
+                    </td>
+                `;
+                
+                // Make row clickable (except action buttons)
+                row.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('action-btn')) {
+                        viewCallLog(index);
+                    }
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // View call log in modal
+        function viewCallLog(index) {
+            const log = callHistory[index];
+            const jsonDisplay = document.getElementById('jsonDisplay');
+            jsonDisplay.textContent = JSON.stringify(log, null, 2);
+            
+            const modal = document.getElementById('jsonModal');
+            modal.style.display = 'block';
+        }
+
+        // Close JSON modal
+        function closeJsonModal() {
+            const modal = document.getElementById('jsonModal');
+            modal.style.display = 'none';
+        }
+
+        // Download single log
+        function downloadSingleLog(index) {
+            const log = callHistory[index];
+            const jsonStr = JSON.stringify(log, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const timestamp = new Date(log.exported_at).toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            a.download = `call-log-${index + 1}-${timestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Delete from history
+        function deleteFromHistory(index) {
+            if (confirm(`Delete call log #${index + 1}?`)) {
+                callHistory.splice(index, 1);
+                updateCallHistoryTable();
+                saveHistoryToLocalStorage();
+                addTranscript('system', `🗑️ Call log #${index + 1} deleted from history`);
+            }
+        }
+
+        // Export all history as single JSON file
+        function exportAllHistory() {
+            if (callHistory.length === 0) {
+                alert('No call history to export');
+                return;
+            }
+            
+            const jsonStr = JSON.stringify(callHistory, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            a.download = `call-history-all-${timestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addTranscript('system', `📥 Exported ${callHistory.length} call logs`);
+        }
+
+        // Clear all history
+        function clearAllHistory() {
+            if (callHistory.length === 0) {
+                alert('No history to clear');
+                return;
+            }
+            
+            if (confirm(`Delete all ${callHistory.length} call logs from history?`)) {
+                callHistory = [];
+                updateCallHistoryTable();
+                saveHistoryToLocalStorage();
+                addTranscript('system', '🗑️ All call history cleared');
+            }
+        }
+
+        // Save history to localStorage
+        function saveHistoryToLocalStorage() {
+            try {
+                const dataToSave = JSON.stringify(callHistory);
+                localStorage.setItem('callHistory', dataToSave);
+                console.log(`💾 Saved ${callHistory.length} calls to localStorage (${dataToSave.length} bytes)`);
+            } catch (e) {
+                console.error('❌ Failed to save history to localStorage:', e);
+                alert('Failed to save history to localStorage: ' + e.message);
+            }
+        }
+
+        // Load history from Redshift
+        async function loadHistoryFromRedshift() {
+            try {
+                console.log('🔄 Loading call history from Redshift...');
+                
+                const response = await fetch(`${API_BASE}/api/calls/history`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.calls && Array.isArray(data.calls)) {
+                    callHistory = data.calls.map(call => ({
+                        call_pk: call.call_pk,
+                        hcp_name: call.id, // This is the HCP ID from Redshift
+                        hcp_id: call.id,
+                        account: call.account,
+                        product: call.product,
+                        call_date: call.call_date ? new Date(call.call_date).toISOString().split('T')[0] : null,
+                        call_time: call.call_time,
+                        call_channel: call.call_channel,
+                        discussion_topic: call.discussion_topic,
+                        status: call.status,
+                        adverse_event: call.adverse_event,
+                        noncompliance_event: call.noncompliance_event,
+                        call_notes: call.call_notes,
+                        followup_task_type: call.followup_task_type,
+                        created_at: call.created_at,
+                        source: 'redshift'
+                    }));
+                    
+                    updateCallHistoryTable();
+                    console.log(`✅ Loaded ${callHistory.length} call logs from Redshift`);
+                    addTranscript('system', `📊 Loaded ${callHistory.length} calls from Redshift`);
+                    return callHistory.length;
+                } else {
+                    console.log('ℹ️  No calls found in Redshift');
+                    callHistory = [];
+                    updateCallHistoryTable();
+                    return 0;
+                }
+            } catch (e) {
+                console.error('❌ Failed to load history from Redshift:', e);
+                addTranscript('system', `⚠️  Failed to load Redshift history: ${e.message}`);
+                return 0;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('jsonModal');
+            if (event.target === modal) {
+                closeJsonModal();
+            }
+        }
+
+        // Test manual save function
+        function testManualSave() {
+            console.log('🧪 TEST SAVE CALLED');
+            
+            const testCall = {
+                hcp_name: 'Dr. Test ' + new Date().getTime(),
+                hcp_id: 'TEST-' + Date.now(),
+                call_date: new Date().toISOString().split('T')[0],
+                call_time: new Date().toTimeString().split(' ')[0],
+                product: 'Test Product',
+                exported_at: new Date().toISOString(),
+                session_id: 'test-session',
+                test: true
+            };
+            
+            console.log('Test call object:', testCall);
+            
+            callHistory.push(testCall);
+            console.log('Added to history. Length:', callHistory.length);
+            
+            updateCallHistoryTable();
+            console.log('Table updated');
+            
+            saveHistoryToLocalStorage();
+            console.log('Saved to localStorage');
+            
+            // Verify
+            const verify = localStorage.getItem('callHistory');
+            console.log('Verification:', verify ? `${verify.length} bytes in localStorage` : 'NOTHING in localStorage!');
+            
+            addTranscript('system', `🧪 Test call #${callHistory.length} added to history`);
+            alert(`Test call added! Total calls: ${callHistory.length}`);
+        }
+
         // Event listeners
         startSessionBtn.addEventListener('click', startSession);
         endSessionBtn.addEventListener('click', endSession);
@@ -915,13 +1916,28 @@
                 document.getElementById(key).textContent = '0';
             });
         });
+        exportJsonBtn.addEventListener('click', exportCallLogJson);
+        clearCallLogBtn.addEventListener('click', clearCallLogData);
+        
+        // History buttons
+        document.getElementById('refreshHistory').addEventListener('click', () => {
+            addTranscript('system', '🔄 Refreshing call history from Redshift...');
+            loadHistoryFromRedshift();
+        });
+        document.getElementById('exportAllHistory').addEventListener('click', exportAllHistory);
 
         // Initialize
+        console.log('🚀 Initializing application...');
         loadHCPs();
-        
-        console.log('🤖 Nova Sonic Voice Test Loaded');
-        console.log('API Base:', API_BASE);
-        console.log('Mode: Voice (Nova Sonic)');
+        updateCallLogTable();
+        loadHistoryFromRedshift().then(historyCount => {
+            console.log('🤖 Nova Sonic Voice Test Loaded');
+            console.log('API Base:', API_BASE);
+            console.log('Mode: Voice (Nova Sonic)');
+            console.log(`📚 Loaded ${historyCount} previous call logs from Redshift`);
+        });
+        console.log('💾 Export button:', exportJsonBtn ? 'Found' : 'NOT FOUND');
+        console.log('🗑️  Clear history button:', document.getElementById('clearHistory') ? 'Found' : 'NOT FOUND');
     </script>
 </body>
 </html>

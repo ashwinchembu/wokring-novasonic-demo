@@ -64,6 +64,60 @@ app.get('/test', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'voice-test.html'));
 });
 
+app.get('/voice-test.html', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'voice-test.html'));
+});
+
+// ============================================================================
+// Call History Endpoints
+// ============================================================================
+
+app.get('/api/calls/history', async (_req: Request, res: Response) => {
+  try {
+    logger.info('📊 Fetching call history from Redshift...');
+    
+    if (!redshiftClient.isAvailable()) {
+      logger.warn('Redshift not available, returning empty history');
+      return res.json({ calls: [], source: 'unavailable' });
+    }
+    
+    const result = await redshiftClient.query(`
+      SELECT 
+        call_pk,
+        call_channel,
+        discussion_topic,
+        status,
+        account,
+        id as hcp_id,
+        product,
+        call_date,
+        call_time,
+        adverse_event,
+        noncompliance_event,
+        call_notes,
+        followup_task_type,
+        created_at
+      FROM calls
+      ORDER BY created_at DESC
+      LIMIT 50
+    `);
+    
+    logger.info(`✅ Found ${result.rows.length} calls in history`);
+    
+    res.json({
+      calls: result.rows,
+      count: result.rows.length,
+      source: 'redshift',
+    });
+  } catch (error) {
+    logger.error('❌ Error fetching call history:', error);
+    res.status(500).json({
+      error: 'Failed to fetch call history',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // ============================================================================
 // Session Management Endpoints
 // ============================================================================
@@ -211,16 +265,16 @@ app.get('/events/stream/:sessionId', async (req: Request, res: Response) => {
         const textContent = eventData.textOutput.content;
         const role = client.role || 'assistant';
 
-        logger.debug(`[${sessionId}] Received textOutput: role=${role}, text=${textContent.substring(0, 50)}...`);
+        logger.info(`[${sessionId}] Received textOutput: role=${role}, text=${textContent.substring(0, 100)}...`);
 
         // Skip interrupted messages
         if (!textContent.includes('{ "interrupted" : true }')) {
           const finalText = textContent;
 
-          // Create content hash for deduplication
-          const contentHash = Buffer.from(`${role}:${finalText}`)
+          // Create content hash for deduplication (include timestamp to avoid false positives)
+          const contentHash = Buffer.from(`${role}:${finalText}:${eventCounter}`)
             .toString('base64')
-            .substring(0, 16);
+            .substring(0, 20);
 
           if (seenEventIds.has(contentHash)) {
             logger.warn(`[${sessionId}] DUPLICATE DETECTED! Skipping: ${role} - ${finalText.substring(0, 50)}...`);
@@ -229,15 +283,20 @@ app.get('/events/stream/:sessionId', async (req: Request, res: Response) => {
 
           seenEventIds.add(contentHash);
 
-          logger.info(`[${sessionId}] YIELDING transcript: ${role.toLowerCase()} - ${finalText.substring(0, 50)}...`);
+          // Normalize role to lowercase for consistency
+          const speakerRole = role.toLowerCase().replace('user', 'user').replace('assistant', 'assistant');
+
+          logger.info(`[${sessionId}] ✅ YIELDING transcript #${eventCounter}: ${speakerRole} - ${finalText.substring(0, 50)}...`);
           res.write(
             `event: transcript\ndata: ${JSON.stringify({
               type: 'transcript',
-              speaker: role.toLowerCase(),
+              speaker: speakerRole,
               text: finalText,
               timestamp: new Date().toISOString(),
             })}\n\n`
           );
+        } else {
+          logger.info(`[${sessionId}] ⏭️  Skipping interrupted message: ${textContent.substring(0, 50)}...`);
         }
       }
 

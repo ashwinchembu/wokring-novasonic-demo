@@ -250,7 +250,7 @@ class RedshiftClient {
 
       const callId = `CALL-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-      const result = await this.query(insertQuery, [
+      await this.query(insertQuery, [
         callId,
         record.hcp_id || null,
         record.hcp_name || null,

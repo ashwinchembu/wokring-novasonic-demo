@@ -10,3 +10,8 @@ python-dotenv>=1.0.0
 pytz>=2023.3
 httptools
 uvloop
+httpx>=0.25.0
+aws-sdk-bedrock-runtime>=1.0.0
+smithy-core>=1.0.0
+smithy-aws-core>=1.0.0
+psycopg2-binary>=2.9.0

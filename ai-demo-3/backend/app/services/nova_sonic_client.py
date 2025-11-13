@@ -1,7 +1,6 @@
-r"""
+"""
 Nova Sonic Client Service
 Manages bidirectional streaming with AWS Bedrock Nova Sonic model.
-Adapted from amazon-nova-samples/speech-to-speech patterns.
 """
 import asyncio
 import base64
@@ -34,7 +33,6 @@ logger = logging.getLogger(__name__)
 class NovaSonicClient:
     """Manages bidirectional streaming with AWS Bedrock Nova Sonic."""
     
-    # Event templates from Nova Sonic reference implementation
     START_SESSION_EVENT = '''{
         "event": {
             "sessionStart": {
@@ -47,7 +45,6 @@ class NovaSonicClient:
         }
     }'''
     
-    # Tool definitions for Nova Sonic
     TOOL_DEFINITIONS = [
         {
             "toolSpec": {
@@ -283,7 +280,6 @@ class NovaSonicClient:
         """Initialize the Nova Sonic client."""
         self.model_id = model_id or settings.bedrock_model_id
         self.region = region or settings.region
-        # Use Agent-683 system prompt by default for CRM call recording
         self.system_prompt = system_prompt or AGENT_683_SYSTEM_PROMPT
         
         self.input_subject = Subject()
@@ -297,20 +293,13 @@ class NovaSonicClient:
         self.bedrock_client: Optional[BedrockRuntimeClient] = None
         self.scheduler: Optional[AsyncIOScheduler] = None
         
-        # Audio output queue
         self.audio_output_queue: asyncio.Queue = asyncio.Queue()
-        
-        # Text response tracking
         self.display_assistant_text = False
         self.role: Optional[str] = None
-        
-        # Session information
         self.session_id = str(uuid.uuid4())
         self.prompt_name = str(uuid.uuid4())
         self.content_name = str(uuid.uuid4())
         self.audio_content_name = str(uuid.uuid4())
-        
-        # Tool use tracking
         self.tool_use_handler: Optional[Callable] = None
         
         logger.info(f"NovaSonicClient initialized with session_id: {self.session_id}")
@@ -335,13 +324,12 @@ class NovaSonicClient:
         self.scheduler = AsyncIOScheduler(asyncio.get_event_loop())
         
         try:
-            # Create bidirectional stream with timeout
             logger.info(f"Attempting to connect to Bedrock model: {self.model_id}")
             self.stream_response = await asyncio.wait_for(
                 self.bedrock_client.invoke_model_with_bidirectional_stream(
                     InvokeModelWithBidirectionalStreamOperationInput(model_id=self.model_id)
                 ),
-                timeout=10.0  # 10 second timeout
+                timeout=10.0
             )
             logger.info("Successfully connected to Bedrock")
             

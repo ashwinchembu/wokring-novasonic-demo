@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     )
     
     # CORS Configuration
-    cors_origins: list = ["http://localhost:8080", "http://localhost:3000"]
+    cors_origins: str = "http://localhost:8080,http://localhost:3000"
     
     # Redshift Configuration
     redshift_host: Optional[str] = None
@@ -86,6 +86,13 @@ class Settings(BaseSettings):
         if self.bedrock_endpoint_url:
             return self.bedrock_endpoint_url
         return f"https://bedrock-runtime.{self.region}.amazonaws.com"
+    
+    @property
+    def cors_origins_list(self) -> list:
+        """Parse CORS origins as list."""
+        if isinstance(self.cors_origins, str):
+            return [origin.strip() for origin in self.cors_origins.split(',')]
+        return self.cors_origins
 
 
 # Global settings instance

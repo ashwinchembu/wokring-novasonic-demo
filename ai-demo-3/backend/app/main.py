@@ -54,7 +54,6 @@ except Exception as e:
     GUARDRAILS_ENABLED = False
     logger.warning(f"⚠️  Guardrails disabled - import failed: {e}")
     logger.warning("Install dependencies: pip install pandas openpyxl")
-    # Create dummy functions so code doesn't break
     class DummyGuardrails:
         @staticmethod
         def check(*args, **kwargs):
@@ -91,7 +90,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -309,7 +308,6 @@ async def stream_events(session_id: str):
                     
                     # Skip interrupted messages
                     if '{ "interrupted" : true }' not in text_content:
-                        # GUARDRAILS CHECK - Only check assistant text
                         final_text = text_content
                         should_suppress_audio = False
                         

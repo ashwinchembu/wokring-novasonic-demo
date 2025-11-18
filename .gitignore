@@ -30,3 +30,9 @@ dist/
 # OS
 .DS_Store
 *.DS_Store
+
+# Local databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3

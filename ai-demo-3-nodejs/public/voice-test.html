@@ -820,6 +820,7 @@
         
         // State
         let sessionId = null;
+        let bedrockSessionId = null; // Bedrock Agent Runtime session for call analysis
         let eventSource = null;
         let mediaRecorder = null;
         let audioContext = null;
@@ -831,6 +832,10 @@
         let isPlayingAudio = false;
         let nextStartTime = 0;
         let scheduledSources = [];
+        
+        // Call analysis state
+        let transcriptBuffer = [];
+        let hasAnalyzed = false;
         
         // Stats
         let stats = {
@@ -909,6 +914,7 @@
         // Start session
         async function startSession() {
             try {
+                // Start Nova Sonic session
                 const response = await fetch(`${API_BASE}/session/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -922,10 +928,28 @@
                 const data = await response.json();
                 sessionId = data.sessionId;
                 
+                // Establish Bedrock Agent Runtime session for call analysis
+                try {
+                    const bedrockResponse = await fetch(`${API_BASE}/api/session/establish`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: 'voice-user-' + Date.now() })
+                    });
+                    
+                    if (bedrockResponse.ok) {
+                        const bedrockData = await bedrockResponse.json();
+                        bedrockSessionId = bedrockData.sessionId;
+                        console.log('✅ Bedrock session established:', bedrockSessionId);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Failed to establish Bedrock session:', error);
+                }
+                
                 updateStatus('connected', `Nova Sonic: ${sessionId.substring(0, 8)}...`);
                 sessionInfo.innerHTML = `
                     <strong>Mode:</strong> Voice (Nova Sonic)<br>
                     <strong>Session ID:</strong> ${sessionId}<br>
+                    <strong>Bedrock Session:</strong> ${bedrockSessionId ? bedrockSessionId.substring(0, 8) + '...' : 'Not available'}<br>
                     <strong>Status:</strong> ${data.status}<br>
                     <strong>Created:</strong> ${new Date(data.createdAt).toLocaleTimeString()}
                 `;
@@ -938,6 +962,9 @@
                     startEventStream();
                 
                 addTranscript('system', '✅ Nova Sonic session started successfully');
+                if (bedrockSessionId) {
+                    addTranscript('system', '✅ Call recording analysis enabled');
+                }
             } catch (error) {
                 console.error('Failed to start session:', error);
                 alert('Failed to start session: ' + error.message);
@@ -983,6 +1010,9 @@
                 }
                 
                 sessionId = null;
+                bedrockSessionId = null;
+                transcriptBuffer = [];
+                hasAnalyzed = false;
                 updateStatus('disconnected', 'Not Connected');
                 sessionInfo.innerHTML = 'No active session';
                 
@@ -1008,6 +1038,25 @@
                 addTranscript(data.speaker, data.text, data.timestamp);
                 parseTranscriptForData(data.text, data.speaker);
                 updateStat('transcripts');
+                
+                // Buffer transcript for call analysis
+                if (bedrockSessionId) {
+                    transcriptBuffer.push({
+                        speaker: data.speaker,
+                        text: data.text,
+                        timestamp: data.timestamp
+                    });
+                    
+                    // Trigger analysis after collecting user utterances
+                    if (data.speaker === 'user' && !hasAnalyzed) {
+                        // Wait a bit for more context, then analyze
+                        setTimeout(() => {
+                            if (transcriptBuffer.length >= 2) {
+                                analyzeCallRecording();
+                            }
+                        }, 3000);
+                    }
+                }
             });
             
             eventSource.addEventListener('audio', (e) => {
@@ -1870,6 +1919,124 @@
             }
         }
 
+        // Analyze call recording using Bedrock session
+        async function analyzeCallRecording() {
+            if (!bedrockSessionId || hasAnalyzed) return;
+            
+            try {
+                console.log('🔍 Analyzing call recording...');
+                
+                // Combine transcripts into a single text
+                const combinedText = transcriptBuffer
+                    .map(t => `${t.speaker}: ${t.text}`)
+                    .join('\n');
+                
+                console.log('Combined transcript:', combinedText);
+                
+                const response = await fetch(`${API_BASE}/api/call/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionId: bedrockSessionId,
+                        input: combinedText
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Call analysis result:', result);
+                
+                hasAnalyzed = true;
+                
+                // Update call log data with analyzed results
+                if (result.callRecordingPayload) {
+                    const payload = result.callRecordingPayload;
+                    
+                    callLogData.accountName = payload.accountName || callLogData.hcp_name;
+                    callLogData.hcp_name = payload.accountName || callLogData.hcp_name;
+                    callLogData.hcp_id = payload.accountId || callLogData.hcp_id;
+                    callLogData.call_date = payload.call_date || callLogData.call_date;
+                    callLogData.call_time = payload.call_time || callLogData.call_time;
+                    callLogData.product = payload.product_description || callLogData.product;
+                    callLogData.call_channel = payload.call_channel || callLogData.call_channel;
+                    callLogData.discussion_topic = payload.discussion_notes || callLogData.discussion_topic;
+                    callLogData.call_notes = payload.call_notes || callLogData.call_notes;
+                    callLogData.adverse_event = payload.adverse_event || callLogData.adverse_event;
+                    callLogData.adverse_event_details = payload.adverse_event_details || callLogData.adverse_event_details;
+                    callLogData.noncompliance_event = payload.non_compliance_event || callLogData.noncompliance_event;
+                    callLogData.noncompliance_description = payload.non_compliance_description || callLogData.noncompliance_description;
+                    
+                    updateCallLogTable();
+                    
+                    addTranscript('system', '🤖 AI analyzed call recording and extracted data');
+                    
+                    // Check for missing information
+                    if (result.missingInformationEvents && result.missingInformationEvents.length > 0) {
+                        console.log('⚠️ Missing information:', result.missingInformationEvents);
+                        addTranscript('system', `⚠️ Missing: ${result.missingInformationEvents.join(', ')}`);
+                        
+                        // Check if we should auto-save
+                        checkAutoSave();
+                    } else {
+                        console.log('✅ All required information collected');
+                        addTranscript('system', '✅ All required information collected');
+                        checkAutoSave();
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to analyze call recording:', error);
+                addTranscript('system', `❌ Analysis failed: ${error.message}`);
+            }
+        }
+        
+        // Fill missing details in call recording
+        async function fillMissingDetails(inputText) {
+            if (!bedrockSessionId) return;
+            
+            try {
+                console.log('🔍 Filling missing details...');
+                
+                const response = await fetch(`${API_BASE}/api/call/fill-missing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionId: bedrockSessionId,
+                        input: inputText
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Fill missing result:', result);
+                
+                // Update call log data with filled results
+                if (result.callRecordingPayload) {
+                    const payload = result.callRecordingPayload;
+                    
+                    if (payload.accountName) callLogData.hcp_name = payload.accountName;
+                    if (payload.accountId) callLogData.hcp_id = payload.accountId;
+                    if (payload.call_date) callLogData.call_date = payload.call_date;
+                    if (payload.call_time) callLogData.call_time = payload.call_time;
+                    if (payload.product_description) callLogData.product = payload.product_description;
+                    
+                    updateCallLogTable();
+                    
+                    addTranscript('system', '✅ Updated with missing information');
+                    
+                    // Check if we should auto-save
+                    checkAutoSave();
+                }
+            } catch (error) {
+                console.error('❌ Failed to fill missing details:', error);
+            }
+        }
+        
         // Test manual save function
         function testManualSave() {
             console.log('🧪 TEST SAVE CALLED');

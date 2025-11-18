@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     n8n_webhook_url: Optional[str] = None
     n8n_webhook_secret: Optional[str] = None
     
+    # Local Database Configuration
+    use_local_db: bool = False
+    local_db_path: str = "local_crm.db"
+    
     # Debug
     debug: bool = False
     

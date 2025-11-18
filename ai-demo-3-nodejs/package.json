@@ -20,6 +20,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-bedrock-agent-runtime": "^3.666.0",
     "@aws-sdk/client-bedrock-runtime": "^3.666.0",
     "@smithy/eventstream-codec": "^3.1.2",
     "@smithy/node-http-handler": "^4.4.4",
@@ -27,8 +28,11 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "moment": "^2.30.1",
     "pg": "^8.16.3",
     "rxjs": "^7.8.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "uuid": "^9.0.1",
     "winston": "^3.11.0",
     "ws": "^8.16.0"

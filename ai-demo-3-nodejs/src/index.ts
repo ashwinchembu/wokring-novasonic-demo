@@ -9,6 +9,8 @@ import config from './config';
 import logger from './logger';
 import { sessionManager } from './services/sessionManager';
 import redshiftClient from './redshift';
+import { bedrockSessionService } from './services/bedrockSessionService';
+import { callRecordingAnalyzer } from './services/callRecordingAnalyzer';
 import {
   SessionStartRequest,
   AudioChunkRequest,
@@ -528,6 +530,85 @@ app.delete('/conversation/:sessionId', (req: Request, res: Response) => {
     status: 'success',
     message: `Conversation session ${sessionId} deleted`,
   });
+});
+
+// ============================================================================
+// Bedrock Agent Runtime Session Endpoints (for Call Recording Analysis)
+// ============================================================================
+
+/**
+ * POST /api/session/establish
+ * Create a new Bedrock Agent Runtime session for call recording analysis
+ * Body: { userId: string }
+ */
+app.post('/api/session/establish', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    const sessionId = await bedrockSessionService.createSession(userId);
+
+    logger.info(`Bedrock session established: ${sessionId}`);
+
+    res.json({
+      sessionId,
+      message: 'Session established successfully',
+    });
+  } catch (error: any) {
+    logger.error(`Error establishing Bedrock session: ${error}`);
+    res.status(500).json({ error: `Failed to establish session: ${error.message}` });
+  }
+});
+
+/**
+ * POST /api/call/analyze
+ * Analyze a call recording transcript (first pass)
+ * Body: { sessionId: string, input: string }
+ */
+app.post('/api/call/analyze', async (req: Request, res: Response) => {
+  try {
+    const { sessionId, input } = req.body;
+
+    if (!sessionId || !input) {
+      return res.status(400).json({ error: 'sessionId and input are required' });
+    }
+
+    logger.info(`Analyzing call recording for session: ${sessionId}`);
+
+    const result = await callRecordingAnalyzer.analyzeCallRecording(sessionId, input);
+
+    res.json(result);
+  } catch (error: any) {
+    logger.error(`Error analyzing call recording: ${error}`);
+    res.status(500).json({ error: `Failed to analyze call recording: ${error.message}` });
+  }
+});
+
+/**
+ * POST /api/call/fill-missing
+ * Fill missing details from a previous call analysis
+ * Body: { sessionId: string, input: string }
+ */
+app.post('/api/call/fill-missing', async (req: Request, res: Response) => {
+  try {
+    const { sessionId, input } = req.body;
+
+    if (!sessionId || !input) {
+      return res.status(400).json({ error: 'sessionId and input are required' });
+    }
+
+    logger.info(`Filling missing details for session: ${sessionId}`);
+
+    const result = await callRecordingAnalyzer.fillMissingDetails(sessionId, input);
+
+    res.json(result);
+  } catch (error: any) {
+    logger.error(`Error filling missing details: ${error}`);
+    res.status(500).json({ error: `Failed to fill missing details: ${error.message}` });
+  }
 });
 
 // ============================================================================

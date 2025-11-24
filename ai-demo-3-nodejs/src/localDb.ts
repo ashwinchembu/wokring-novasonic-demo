@@ -142,4 +142,61 @@ export async function checkConnection(): Promise<boolean> {
   }
 }
 
+/**
+ * Generic query method (PostgreSQL-compatible interface)
+ * Converts SQLite results to match Redshift format
+ */
+export async function query(sql: string, params: any[] = []): Promise<{ rows: any[] }> {
+  try {
+    const conn = await getConnection();
+    
+    // Convert PostgreSQL $1, $2 parameters to SQLite ? placeholders
+    let sqliteSql = sql;
+    let sqliteParams = params;
+    
+    // Check if using PostgreSQL-style parameters ($1, $2, etc.)
+    if (sql.includes('$')) {
+      // Replace $1, $2, etc. with ?
+      sqliteSql = sql.replace(/\$\d+/g, '?');
+    }
+    
+    // Determine if this is a SELECT query
+    const isSelect = sqliteSql.trim().toUpperCase().startsWith('SELECT');
+    
+    if (isSelect) {
+      const rows = await conn.all(sqliteSql, sqliteParams);
+      return { rows };
+    } else {
+      // INSERT/UPDATE/DELETE
+      const result = await conn.run(sqliteSql, sqliteParams);
+      return {
+        rows: [{ 
+          rowCount: result.changes,
+          lastID: result.lastID 
+        }]
+      };
+    }
+  } catch (error) {
+    logger.error('SQLite query failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Check if database is available
+ */
+export function isAvailable(): boolean {
+  return true; // SQLite is always available locally
+}
+
+// Export default object with all methods
+export default {
+  lookupHcpByName,
+  insertCall,
+  getRecentCalls,
+  checkConnection,
+  query,
+  isAvailable,
+};
+
 

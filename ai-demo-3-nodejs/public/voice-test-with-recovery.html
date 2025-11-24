@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Sonic Voice Test with Session Recovery</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.4em;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .session-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .session-info-item {
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .session-info-item strong {
+      color: #667eea;
+      display: inline-block;
+      width: 150px;
+    }
+
+    .recovery-indicator {
+      background: #d4edda;
+      border: 2px solid #28a745;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: none;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    .recovery-indicator.active {
+      display: block;
+    }
+
+    .recovery-indicator h3 {
+      color: #155724;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .recovery-indicator p {
+      color: #155724;
+      margin-bottom: 5px;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      padding: 15px 25px;
+      font-size: 1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-start:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-record {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn-record:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-stop {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+
+    .btn-end {
+      background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+      color: white;
+    }
+
+    .btn-clear {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+      color: #333;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .status.idle {
+      background: #ffeaa7;
+      color: #fdcb6e;
+    }
+
+    .status.active {
+      background: #55efc4;
+      color: #00b894;
+      animation: pulse 2s infinite;
+    }
+
+    .status.recording {
+      background: #ff7675;
+      color: #d63031;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .transcript-area {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .transcript-message {
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      border-left: 4px solid;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .transcript-user {
+      background: #e3f2fd;
+      border-left-color: #2196f3;
+    }
+
+    .transcript-assistant {
+      background: #f3e5f5;
+      border-left-color: #9c27b0;
+    }
+
+    .transcript-tool {
+      background: #fff3e0;
+      border-left-color: #ff9800;
+    }
+
+    .transcript-system {
+      background: #e8f5e9;
+      border-left-color: #4caf50;
+    }
+
+    .speaker {
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      font-size: 0.85em;
+    }
+
+    .history-list {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      height: 300px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      margin-bottom: 15px;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+
+    .history-item.user {
+      border-left-color: #2196f3;
+    }
+
+    .history-item.assistant {
+      border-left-color: #9c27b0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .stat-item {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎙️ Nova Sonic Voice Test</h1>
+      <p>With Session Recovery for EKS Deployments</p>
+    </div>
+
+    <div class="grid">
+      <!-- Session Control -->
+      <div class="card">
+        <h2>🎯 Session Control</h2>
+        
+        <div class="recovery-indicator" id="recoveryIndicator">
+          <h3>✅ Session Recovered!</h3>
+          <p id="recoveryMessage"></p>
+        </div>
+
+        <div class="session-info">
+          <div class="session-info-item">
+            <strong>Nova Sonic:</strong>
+            <span id="sessionIdDisplay">Not started</span>
+          </div>
+          <div class="session-info-item">
+            <strong>Bedrock Session:</strong>
+            <span id="bedrockSessionDisplay">Not started</span>
+          </div>
+          <div class="session-info-item">
+            <strong>History Length:</strong>
+            <span id="historyLengthDisplay">0 turns</span>
+          </div>
+        </div>
+
+        <div class="status idle" id="status">Idle</div>
+
+        <div class="controls">
+          <button id="startSessionBtn" class="btn-start" onclick="startSession()">
+            ▶️ Start Session
+          </button>
+          <button id="startRecordingBtn" class="btn-record" onclick="startRecording()" disabled>
+            🎙️ Start Recording
+          </button>
+          <button id="stopRecordingBtn" class="btn-stop" onclick="stopRecording()" disabled>
+            ⏸️ Stop Recording
+          </button>
+          <button id="endSessionBtn" class="btn-end" onclick="endSession()" disabled>
+            ⏹️ End Session
+          </button>
+          <button class="btn-clear" onclick="clearTranscript()">
+            🗑️ Clear Transcript
+          </button>
+          <button class="btn-clear" onclick="clearStorage()">
+            🔄 Clear Stored Session
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Transcript -->
+      <div class="card">
+        <h2>💬 Live Transcript</h2>
+        <div class="transcript-area" id="transcriptArea"></div>
+      </div>
+
+      <!-- Conversation History -->
+      <div class="card">
+        <h2>📜 Conversation History</h2>
+        <button class="btn-start" onclick="loadHistory()" style="margin-bottom: 15px; width: 100%;">
+          🔄 Reload History from Bedrock
+        </button>
+        <div class="history-list" id="historyList">
+          <p style="color: #999; text-align: center; padding: 20px;">
+            No history available
+          </p>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="card">
+        <h2>📊 Statistics</h2>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="turnCount">0</div>
+            <div class="stat-label">Turns Completed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="audioChunks">0</div>
+            <div class="stat-label">Audio Chunks</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="transcriptCount">0</div>
+            <div class="stat-label">Transcripts</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="toolCallCount">0</div>
+            <div class="stat-label">Tool Calls</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // API Configuration
+    const API_BASE_URL = window.location.origin;
+
+    // Session state
+    let sessionId = null;
+    let bedrockSessionId = localStorage.getItem('bedrockSessionId');
+    let eventSource = null;
+    let audioContext = null;
+    let mediaStream = null;
+    let audioWorkletNode = null;
+    let isRecording = false;
+
+    // Statistics
+    let stats = {
+      turns: 0,
+      audioChunks: 0,
+      transcripts: 0,
+      toolCalls: 0
+    };
+
+    // Initialize
+    window.addEventListener('load', () => {
+      console.log('Page loaded');
+      if (bedrockSessionId) {
+        console.log('Found existing Bedrock session in localStorage:', bedrockSessionId);
+        document.getElementById('bedrockSessionDisplay').textContent = bedrockSessionId.substring(0, 20) + '...';
+      }
+    });
+
+    async function startSession() {
+      try {
+        console.log('Starting session...');
+        
+        const requestBody = {
+          userId: 'web-user-' + Date.now()
+        };
+
+        // If we have a stored Bedrock session, try to recover
+        if (bedrockSessionId) {
+          requestBody.existingBedrockSessionId = bedrockSessionId;
+          console.log('Attempting to recover session:', bedrockSessionId);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/session/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        sessionId = data.sessionId;
+        bedrockSessionId = data.bedrockSessionId;
+
+        // Store Bedrock session ID for recovery
+        localStorage.setItem('bedrockSessionId', bedrockSessionId);
+
+        console.log('Session started:', sessionId);
+        console.log('Bedrock session:', bedrockSessionId);
+
+        // Update UI
+        document.getElementById('sessionIdDisplay').textContent = sessionId.substring(0, 20) + '...';
+        document.getElementById('bedrockSessionDisplay').textContent = bedrockSessionId.substring(0, 20) + '...';
+        document.getElementById('status').textContent = 'Session Active';
+        document.getElementById('status').className = 'status active';
+
+        // Show recovery indicator if we recovered a session
+        if (requestBody.existingBedrockSessionId) {
+          const indicator = document.getElementById('recoveryIndicator');
+          const message = document.getElementById('recoveryMessage');
+          message.textContent = `Recovered conversation history from previous session`;
+          indicator.classList.add('active');
+
+          // Load and display history
+          await loadHistory();
+        }
+
+        // Enable/disable buttons
+        document.getElementById('startSessionBtn').disabled = true;
+        document.getElementById('startRecordingBtn').disabled = false;
+        document.getElementById('endSessionBtn').disabled = false;
+
+        // Start event stream
+        startEventStream();
+
+        addSystemMessage('Session started successfully');
+      } catch (error) {
+        console.error('Error starting session:', error);
+        addSystemMessage(`Error: ${error.message}`);
+      }
+    }
+
+    async function startRecording() {
+      try {
+        if (isRecording) {
+          console.log('Already recording');
+          return;
+        }
+
+        console.log('Starting recording...');
+
+        // Notify server that audio input is starting
+        // This will trigger prepareForNextTurn() which sends conversation history
+        const response = await fetch(`${API_BASE_URL}/audio/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Audio start response:', data);
+
+        // Update history length display
+        if (data.historyLength !== undefined) {
+          document.getElementById('historyLengthDisplay').textContent = `${data.historyLength} turns`;
+        }
+
+        // Initialize audio context
+        if (!audioContext) {
+          audioContext = new AudioContext({ sampleRate: 16000 });
+        }
+
+        // Get microphone access
+        mediaStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            channelCount: 1,
+            sampleRate: 16000,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          } 
+        });
+
+        // Create audio source
+        const source = audioContext.createMediaStreamSource(mediaStream);
+
+        // Create script processor (fallback for browsers without AudioWorklet)
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        
+        processor.onaudioprocess = async (event) => {
+          if (!isRecording) return;
+
+          const inputData = event.inputBuffer.getChannelData(0);
+          
+          // Convert Float32Array to Int16Array (PCM)
+          const pcmData = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+            const sample = Math.max(-1, Math.min(1, inputData[i]));
+            pcmData[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+          }
+
+          // Convert to base64
+          const base64Data = btoa(String.fromCharCode.apply(null, new Uint8Array(pcmData.buffer)));
+
+          // Send to server
+          try {
+            await fetch(`${API_BASE_URL}/audio/chunk`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sessionId,
+                audioData: base64Data
+              })
+            });
+
+            stats.audioChunks++;
+            document.getElementById('audioChunks').textContent = stats.audioChunks;
+          } catch (error) {
+            console.error('Error sending audio chunk:', error);
+          }
+        };
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+
+        audioWorkletNode = processor;
+        isRecording = true;
+
+        // Update UI
+        document.getElementById('status').textContent = 'Recording...';
+        document.getElementById('status').className = 'status recording';
+        document.getElementById('startRecordingBtn').disabled = true;
+        document.getElementById('stopRecordingBtn').disabled = false;
+
+        addSystemMessage('🎙️ Recording started - speak now');
+      } catch (error) {
+        console.error('Error starting recording:', error);
+        addSystemMessage(`Error: ${error.message}`);
+      }
+    }
+
+    async function stopRecording() {
+      try {
+        console.log('Stopping recording...');
+
+        isRecording = false;
+
+        // Stop media stream
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(track => track.stop());
+          mediaStream = null;
+        }
+
+        // Disconnect audio nodes
+        if (audioWorkletNode) {
+          audioWorkletNode.disconnect();
+          audioWorkletNode = null;
+        }
+
+        // Notify server
+        const response = await fetch(`${API_BASE_URL}/audio/end`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Audio end response:', data);
+
+        stats.turns++;
+        document.getElementById('turnCount').textContent = stats.turns;
+
+        // Update UI
+        document.getElementById('status').textContent = 'Processing...';
+        document.getElementById('status').className = 'status active';
+        document.getElementById('startRecordingBtn').disabled = false;
+        document.getElementById('stopRecordingBtn').disabled = true;
+
+        addSystemMessage('⏸️ Recording stopped');
+      } catch (error) {
+        console.error('Error stopping recording:', error);
+        addSystemMessage(`Error: ${error.message}`);
+      }
+    }
+
+    async function endSession() {
+      try {
+        console.log('Ending session...');
+
+        // Close event stream
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+
+        // Stop recording if active
+        if (isRecording) {
+          await stopRecording();
+        }
+
+        // Delete session on server
+        await fetch(`${API_BASE_URL}/session/${sessionId}`, {
+          method: 'DELETE'
+        });
+
+        // Don't clear bedrockSessionId - keep it for recovery
+        sessionId = null;
+
+        // Update UI
+        document.getElementById('status').textContent = 'Session Ended';
+        document.getElementById('status').className = 'status idle';
+        document.getElementById('sessionIdDisplay').textContent = 'Not started';
+        
+        // Keep showing Bedrock session ID for recovery
+        document.getElementById('bedrockSessionDisplay').textContent = 
+          bedrockSessionId ? bedrockSessionId.substring(0, 20) + '...' : 'Not started';
+
+        document.getElementById('startSessionBtn').disabled = false;
+        document.getElementById('startRecordingBtn').disabled = true;
+        document.getElementById('stopRecordingBtn').disabled = true;
+        document.getElementById('endSessionBtn').disabled = true;
+
+        addSystemMessage('Session ended - Bedrock session preserved for recovery');
+      } catch (error) {
+        console.error('Error ending session:', error);
+        addSystemMessage(`Error: ${error.message}`);
+      }
+    }
+
+    function startEventStream() {
+      console.log('Starting event stream...');
+
+      eventSource = new EventSource(`${API_BASE_URL}/events/stream/${sessionId}`);
+
+      eventSource.addEventListener('transcript', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Transcript:', data);
+        
+        addTranscript(data.speaker, data.text);
+        stats.transcripts++;
+        document.getElementById('transcriptCount').textContent = stats.transcripts;
+      });
+
+      eventSource.addEventListener('tool_log', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Tool log:', data);
+        
+        if (data.type === 'tool_invocation') {
+          addToolLog(`Calling ${data.toolName}`, data.input);
+          stats.toolCalls++;
+          document.getElementById('toolCallCount').textContent = stats.toolCalls;
+        } else if (data.type === 'tool_result') {
+          addToolLog(`Result from ${data.toolName}`, data.result);
+        }
+      });
+
+      eventSource.addEventListener('status', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Status:', data);
+        addSystemMessage(`Status: ${data.message}`);
+      });
+
+      eventSource.addEventListener('error', (event) => {
+        const data = JSON.parse(event.data);
+        console.error('Error event:', data);
+        addSystemMessage(`Error: ${data.message}`);
+      });
+
+      eventSource.onerror = (error) => {
+        console.error('EventSource error:', error);
+        addSystemMessage('Connection error - reconnecting...');
+      };
+    }
+
+    async function loadHistory() {
+      try {
+        if (!sessionId) {
+          console.log('No active session');
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/conversation/${sessionId}/history`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Loaded history:', data);
+
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+
+        if (data.history.length === 0) {
+          historyList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No history available</p>';
+          return;
+        }
+
+        data.history.forEach(turn => {
+          const item = document.createElement('div');
+          item.className = `history-item ${turn.role}`;
+          item.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.85em; color: ${turn.role === 'user' ? '#2196f3' : '#9c27b0'};">
+              ${turn.role}
+            </div>
+            <div style="color: #333;">${turn.text}</div>
+            <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+              ${new Date(turn.timestamp).toLocaleString()}
+            </div>
+          `;
+          historyList.appendChild(item);
+        });
+
+        document.getElementById('historyLengthDisplay').textContent = `${data.historyLength} turns`;
+      } catch (error) {
+        console.error('Error loading history:', error);
+        addSystemMessage(`Error loading history: ${error.message}`);
+      }
+    }
+
+    function addTranscript(speaker, text) {
+      const transcriptArea = document.getElementById('transcriptArea');
+      const message = document.createElement('div');
+      message.className = `transcript-message transcript-${speaker}`;
+      message.innerHTML = `
+        <div class="speaker">${speaker}</div>
+        <div>${text}</div>
+        <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+          ${new Date().toLocaleTimeString()}
+        </div>
+      `;
+      transcriptArea.appendChild(message);
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+
+    function addToolLog(action, data) {
+      const transcriptArea = document.getElementById('transcriptArea');
+      const message = document.createElement('div');
+      message.className = 'transcript-message transcript-tool';
+      message.innerHTML = `
+        <div class="speaker">TOOL</div>
+        <div style="font-weight: bold;">${action}</div>
+        <div style="font-family: 'Courier New', monospace; font-size: 0.85em; margin-top: 5px;">
+          ${JSON.stringify(data, null, 2)}
+        </div>
+        <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+          ${new Date().toLocaleTimeString()}
+        </div>
+      `;
+      transcriptArea.appendChild(message);
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+
+    function addSystemMessage(text) {
+      const transcriptArea = document.getElementById('transcriptArea');
+      const message = document.createElement('div');
+      message.className = 'transcript-message transcript-system';
+      message.innerHTML = `
+        <div class="speaker">SYSTEM</div>
+        <div>${text}</div>
+        <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+          ${new Date().toLocaleTimeString()}
+        </div>
+      `;
+      transcriptArea.appendChild(message);
+      transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
+
+    function clearTranscript() {
+      document.getElementById('transcriptArea').innerHTML = '';
+      addSystemMessage('Transcript cleared');
+    }
+
+    function clearStorage() {
+      localStorage.removeItem('bedrockSessionId');
+      bedrockSessionId = null;
+      document.getElementById('bedrockSessionDisplay').textContent = 'Not started';
+      document.getElementById('historyLengthDisplay').textContent = '0 turns';
+      document.getElementById('recoveryIndicator').classList.remove('active');
+      document.getElementById('historyList').innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No history available</p>';
+      addSystemMessage('Stored session cleared - next session will start fresh');
+    }
+  </script>
+</body>
+</html>
+

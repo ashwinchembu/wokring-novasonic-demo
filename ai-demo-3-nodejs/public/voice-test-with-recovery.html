@@ -430,6 +430,11 @@
     let mediaStream = null;
     let audioWorkletNode = null;
     let isRecording = false;
+    
+    // Audio playback
+    let playbackAudioContext = null;
+    let audioQueue = [];
+    let isPlaying = false;
 
     // Statistics
     let stats = {
@@ -665,6 +670,50 @@
       }
     }
 
+    async function playAudioChunk(base64Audio) {
+      try {
+        // Initialize playback audio context
+        if (!playbackAudioContext) {
+          playbackAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+          console.log('Audio playback context initialized');
+        }
+
+        // Decode base64 to PCM
+        const binaryString = atob(base64Audio);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        // Convert to Int16Array (PCM)
+        const pcmData = new Int16Array(bytes.buffer);
+        
+        // Convert PCM to Float32Array for Web Audio API
+        const floatData = new Float32Array(pcmData.length);
+        for (let i = 0; i < pcmData.length; i++) {
+          floatData[i] = pcmData[i] / (pcmData[i] < 0 ? 0x8000 : 0x7FFF);
+        }
+
+        // Create audio buffer
+        const audioBuffer = playbackAudioContext.createBuffer(
+          1,  // mono
+          floatData.length,
+          24000  // 24kHz sample rate (Nova Sonic output)
+        );
+        audioBuffer.getChannelData(0).set(floatData);
+
+        // Play the audio
+        const source = playbackAudioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(playbackAudioContext.destination);
+        source.start();
+
+        console.log('Playing audio chunk:', floatData.length, 'samples');
+      } catch (error) {
+        console.error('Error playing audio:', error);
+      }
+    }
+
     async function endSession() {
       try {
         console.log('Ending session...');
@@ -721,6 +770,15 @@
         addTranscript(data.speaker, data.text);
         stats.transcripts++;
         document.getElementById('transcriptCount').textContent = stats.transcripts;
+      });
+
+      eventSource.addEventListener('audio', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Audio received:', data.type);
+        
+        if (data.audioData) {
+          playAudioChunk(data.audioData);
+        }
       });
 
       eventSource.addEventListener('tool_log', (event) => {

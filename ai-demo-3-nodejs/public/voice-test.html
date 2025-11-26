@@ -815,12 +815,12 @@
     </div>
 
     <script>
-        // Configuration
-        const API_BASE = 'http://localhost:8001';
+        // Configuration - auto-detect from current page URL
+        const API_BASE = window.location.origin;
         
         // State
         let sessionId = null;
-        let bedrockSessionId = null; // Bedrock Agent Runtime session for call analysis
+        let bedrockSessionId = localStorage.getItem('bedrockSessionId'); // Load from storage for session recovery
         let eventSource = null;
         let mediaRecorder = null;
         let audioContext = null;
@@ -914,11 +914,17 @@
         // Start session
         async function startSession() {
             try {
-                // Start Nova Sonic session
+                // Start Nova Sonic session (with existing Bedrock session if available)
+                const requestBody = {};
+                if (bedrockSessionId) {
+                    requestBody.existingBedrockSessionId = bedrockSessionId;
+                    console.log('🔄 Recovering session with Bedrock ID:', bedrockSessionId);
+                }
+                
                 const response = await fetch(`${API_BASE}/session/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
+                    body: JSON.stringify(requestBody)
                 });
                 
                 if (!response.ok) {
@@ -928,21 +934,31 @@
                 const data = await response.json();
                 sessionId = data.sessionId;
                 
-                // Establish Bedrock Agent Runtime session for call analysis
-                try {
-                    const bedrockResponse = await fetch(`${API_BASE}/api/session/establish`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: 'voice-user-' + Date.now() })
-                    });
-                    
-                    if (bedrockResponse.ok) {
-                        const bedrockData = await bedrockResponse.json();
-                        bedrockSessionId = bedrockData.sessionId;
-                        console.log('✅ Bedrock session established:', bedrockSessionId);
+                // Use the Bedrock session ID from Nova Sonic (may have loaded history)
+                if (data.bedrockSessionId) {
+                    bedrockSessionId = data.bedrockSessionId;
+                    localStorage.setItem('bedrockSessionId', bedrockSessionId);
+                    console.log('✅ Using Bedrock session from Nova Sonic:', bedrockSessionId);
+                }
+                
+                // Establish Bedrock Agent Runtime session for call analysis (only if not from Nova Sonic)
+                if (!bedrockSessionId) {
+                    try {
+                        const bedrockResponse = await fetch(`${API_BASE}/api/session/establish`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: 'voice-user-' + Date.now() })
+                        });
+                        
+                        if (bedrockResponse.ok) {
+                            const bedrockData = await bedrockResponse.json();
+                            bedrockSessionId = bedrockData.sessionId;
+                            localStorage.setItem('bedrockSessionId', bedrockSessionId);
+                            console.log('✅ Bedrock session established:', bedrockSessionId);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Failed to establish Bedrock session:', error);
                     }
-                } catch (error) {
-                    console.warn('⚠️ Failed to establish Bedrock session:', error);
                 }
                 
                 updateStatus('connected', `Nova Sonic: ${sessionId.substring(0, 8)}...`);
@@ -962,8 +978,23 @@
                     startEventStream();
                 
                 addTranscript('system', '✅ Nova Sonic session started successfully');
-                if (bedrockSessionId) {
-                    addTranscript('system', '✅ Call recording analysis enabled');
+                
+                // Display conversation history if available
+                if (data.conversationHistory && data.conversationHistory.length > 0) {
+                    addTranscript('system', `🔄 Session recovered! Loaded ${data.conversationHistory.length} previous turns:`);
+                    
+                    // Show the conversation history
+                    data.conversationHistory.forEach((turn, index) => {
+                        const preview = turn.text.length > 80 ? turn.text.substring(0, 80) + '...' : turn.text;
+                        addTranscript('system', `  Turn ${index + 1} - ${turn.role}: "${preview}"`);
+                    });
+                    
+                    addTranscript('system', '✅ You can continue your previous conversation!');
+                } else {
+                    const statusMsg = bedrockSessionId 
+                        ? '📝 Starting fresh conversation (Bedrock session active for future recovery)'
+                        : '📝 Starting fresh conversation (no previous history)';
+                    addTranscript('system', statusMsg);
                 }
             } catch (error) {
                 console.error('Failed to start session:', error);
@@ -1010,7 +1041,7 @@
                 }
                 
                 sessionId = null;
-                bedrockSessionId = null;
+                // Don't clear bedrockSessionId - keep it for session recovery
                 transcriptBuffer = [];
                 hasAnalyzed = false;
                 updateStatus('disconnected', 'Not Connected');
@@ -1039,8 +1070,8 @@
                 parseTranscriptForData(data.text, data.speaker);
                 updateStat('transcripts');
                 
-                // Buffer transcript for call analysis
-                if (bedrockSessionId) {
+                // Buffer transcript for call analysis (disabled - Claude model not available)
+                if (bedrockSessionId && false) { // Disabled
                     transcriptBuffer.push({
                         speaker: data.speaker,
                         text: data.text,
@@ -1092,6 +1123,27 @@
         // Start recording
         async function startRecording() {
             try {
+                // First, notify backend to prepare for audio input
+                const startResponse = await fetch(`${API_BASE}/audio/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: sessionId })
+                });
+                
+                const startData = await startResponse.json();
+                
+                // Show conversation history being sent to model
+                if (startData.historyLength > 0) {
+                    addTranscript('system', `📜 Sending ${startData.historyLength} previous turns to model for context`);
+                    
+                    if (startData.history) {
+                        const historyPreview = startData.history.slice(-3).map(turn => 
+                            `  ${turn.role}: "${turn.text.substring(0, 60)}${turn.text.length > 60 ? '...' : ''}"`
+                        ).join('\n');
+                        addTranscript('system', `Recent history:\n${historyPreview}`);
+                    }
+                }
+                
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: {
                         channelCount: 1,
@@ -1931,6 +1983,11 @@
                     .map(t => `${t.speaker}: ${t.text}`)
                     .join('\n');
                 
+                if (!combinedText || combinedText.trim().length < 20) {
+                    console.log('⏭️ Skipping analysis - insufficient transcript data');
+                    return;
+                }
+                
                 console.log('Combined transcript:', combinedText);
                 
                 const response = await fetch(`${API_BASE}/api/call/analyze`, {
@@ -1987,8 +2044,8 @@
                     }
                 }
             } catch (error) {
-                console.error('❌ Failed to analyze call recording:', error);
-                addTranscript('system', `❌ Analysis failed: ${error.message}`);
+                console.warn('⚠️ Call analysis unavailable:', error.message);
+                // Silent fail - analysis is optional, don't show error to user
             }
         }
         

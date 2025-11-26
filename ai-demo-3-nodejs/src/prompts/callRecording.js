@@ -1,19 +1,23 @@
+"use strict";
 /**
  * Call Recording Prompts
  * Ported from Lambda implementation
  */
-
-import moment from 'moment';
-
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateCallRecordingPrompt = generateCallRecordingPrompt;
+exports.generateFillMissingDetailsPrompt = generateFillMissingDetailsPrompt;
+const moment_1 = __importDefault(require("moment"));
 /**
  * Generate the initial call recording prompt for first-pass analysis
  */
-export function generateCallRecordingPrompt(inputText: string): string {
-  const today = moment(new Date()).format('YYYY-MM-DD');
-  const tomorrow = moment(new Date()).add(1, 'days').format('YYYY-MM-DD');
-  const yesterday = moment(new Date()).subtract(1, 'days').format('YYYY-MM-DD');
-
-  return `You are an AI assistant analyzing call transcripts between Sales Rep and healthcare professionals. You have to extract structured details from a call recording with a health care professional.
+function generateCallRecordingPrompt(inputText) {
+    const today = (0, moment_1.default)(new Date()).format('YYYY-MM-DD');
+    const tomorrow = (0, moment_1.default)(new Date()).add(1, 'days').format('YYYY-MM-DD');
+    const yesterday = (0, moment_1.default)(new Date()).subtract(1, 'days').format('YYYY-MM-DD');
+    return `You are an AI assistant analyzing call transcripts between Sales Rep and healthcare professionals. You have to extract structured details from a call recording with a health care professional.
 
 Your task is to extract the following information from the conversation:
 
@@ -57,7 +61,6 @@ c) Non Compliance Description - If any of these words are found:
   [Honoraria, Off-label, kick back risk, Unpublished, Pre-publication, Unreleased]
    
   Set Non Compliance Description - extracted from the above list
-
 
 Based on the parameters fetched above create JSON response for the below parameters - 
 
@@ -117,16 +120,14 @@ Return ONLY THE JSON RESPONSE as below. DO NOT PROVIDE ANY TEXT -
  }
 Now Generate the JSON response for the call transcript. DO NOT RETURN ANY TEXT- ${inputText}`;
 }
-
 /**
  * Generate the prompt for filling missing information
  */
-export function generateFillMissingDetailsPrompt(inputText: string): string {
-  const today = moment(new Date()).format('YYYY-MM-DD');
-  const tomorrow = moment(new Date()).add(1, 'days').format('YYYY-MM-DD');
-  const yesterday = moment(new Date()).subtract(1, 'days').format('YYYY-MM-DD');
-
-  return `Now the user has given the missing information details as ${inputText}. Analyze the parameters from the Chat History that were missing and save the parameter in the previous JSON response. The missing information can be one of the following - 
+function generateFillMissingDetailsPrompt(inputText) {
+    const today = (0, moment_1.default)(new Date()).format('YYYY-MM-DD');
+    const tomorrow = (0, moment_1.default)(new Date()).add(1, 'days').format('YYYY-MM-DD');
+    const yesterday = (0, moment_1.default)(new Date()).subtract(1, 'days').format('YYYY-MM-DD');
+    return `Now the user has given the missing information details as ${inputText}. Analyze the parameters from the Chat History that were missing and save the parameter in the previous JSON response. The missing information can be one of the following - 
 a) CALL DATE - Convert the date to YYYY-MM-DD format and append into the "call_date" parameter (format: YYYY-MM-DD) - 
    Remember If the call mentions words like "today", "tomorrow", or "yesterday", resolve them based on the date: **${today}**
 Examples:
@@ -153,4 +154,4 @@ o) FOLLOW UP DUE DATE
 p) FOLLOW UP ASSIGNED TO 
 DO NOT ADD ANY TEXT, ONLY SEND THE COMBINED JSON RESPONSE.`;
 }
-
+//# sourceMappingURL=callRecording.js.map

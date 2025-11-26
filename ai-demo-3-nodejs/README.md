@@ -1,159 +1,170 @@
-# AI Demo 3 - Node.js/TypeScript
+# Nova Sonic Voice API
 
-Node.js/TypeScript implementation of the Nova Sonic API backend.
-
-## Overview
-
-This is a Node.js port of the Python FastAPI backend that wraps Amazon Bedrock Nova Sonic streaming for CRM call recording and slot-filling conversations.
-
-## Features
-
-- 🎙️ **Bidirectional Audio Streaming** - Real-time speech-to-speech with Nova Sonic
-- 🔧 **Tool Integration** - HCP lookup, call persistence, n8n events, task creation
-- 📋 **Slot-Filling** - Intelligent conversation state management for CRM recording
-- 🛡️ **Guardrails** - Optional compliance checking (configurable)
-- 🔄 **Session Management** - Multiple concurrent sessions with timeout handling
-- 📡 **SSE Streaming** - Server-Sent Events for frontend integration
-- 🔌 **WebSocket Support** - Alternative real-time communication channel
-
-## Technology Stack
-
-- **Runtime**: Node.js 18+
-- **Language**: TypeScript
-- **Framework**: Express.js
-- **AWS SDK**: @aws-sdk/client-bedrock-runtime
-- **Streaming**: RxJS
-- **Logging**: Winston
+Real-time voice conversation API using AWS Bedrock Nova Sonic with multi-turn history and session recovery.
 
 ## Quick Start
 
-### Prerequisites
-
-- Node.js 18+ installed
-- AWS credentials configured
-- Access to Amazon Bedrock Nova Sonic model
-
-### Installation
-
 ```bash
-# Install dependencies
 npm install
-
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your AWS credentials and configuration
-nano .env
-```
-
-### Development
-
-```bash
-# Run in development mode with hot reload
-npm run dev
-```
-
-### Production
-
-```bash
-# Build TypeScript
-npm run build
-
-# Run production server
 npm start
 ```
 
-## Project Structure
+Server runs on `http://localhost:8000`
+
+## Environment Setup
+
+Create `.env` file:
+
+```env
+AWS_ACCESS_KEY_ID=your_key
+AWS_SECRET_ACCESS_KEY=your_secret
+AWS_REGION=us-east-1
+APP_PORT=8000
+```
+
+## Key Features
+
+- Real-time bidirectional audio streaming
+- Multi-turn conversation with persistent history
+- Session recovery (survives pod restarts)
+- Automatic database fallback (Redshift → SQLite)
+
+## Architecture
+
+### Streaming Flow
+
+The system uses RxJS Subjects for managing async streams:
+
+**Subject**: Observable that can push values to multiple subscribers
+**queueSignal**: Subject that signals when new events are ready to send
+**closeSignal**: Subject that signals when stream should close
+
+**How it works:**
+1. Events are queued: `queue.push(event)`
+2. Signal is fired: `queueSignal.next()`
+3. Drain loop picks it up and sends to Bedrock
+4. When done: `closeSignal.next()` terminates stream
+
+### Session Persistence
+
+Conversation history is stored in Bedrock Agent Runtime:
+- Each session has a `bedrockSessionId`
+- Turns are saved as invocation steps
+- On reconnect, history is loaded and replayed
+
+This allows sessions to survive EKS pod restarts.
+
+### Multi-Turn Flow with Conversation History
+
+Following AWS Nova Sonic spec:
 
 ```
-ai-demo-3-nodejs/
-├── src/
-│   ├── index.ts              # Express app and routes
-│   ├── config.ts             # Configuration and environment
-│   ├── services/
-│   │   ├── novaSonicClient.ts      # Bedrock Nova Sonic wrapper
-│   │   └── sessionManager.ts       # Session lifecycle management
-│   ├── models/
-│   │   └── session.ts        # TypeScript types and schemas
-│   ├── prompting.ts          # Agent-683 system prompt and slot-filling
-│   ├── tools.ts              # Tool handlers (HCP lookup, call insert, etc.)
-│   ├── logger.ts             # Winston logging configuration
-│   └── utils/
-│       └── sse.ts            # Server-Sent Events utilities
-├── package.json
-├── tsconfig.json
-└── .env
+Turn 1:
+  → sessionStart
+  → promptStart (tools, config)
+  → system prompt
+  → audio input
+  → contentEnd + promptEnd
+  ✓ Save: user transcript + assistant transcript
+  
+Turn 2+:
+  → promptStart
+  → system prompt
+  → conversation history (all prior turns as text):
+      "user: hello"
+      "assistant: Hi there! How can I help?"
+      "user: what's the date"
+      "assistant: Today is..."
+  → new audio input
+  → contentEnd + promptEnd
+  ✓ Save: user transcript + assistant transcript
 ```
+
+**How it works:**
+1. After each turn, transcripts are saved to memory
+2. On next turn, ALL previous conversation is sent as text
+3. Nova Sonic receives full context and can reference prior discussion
+4. User can ask "what did I say earlier?" and get accurate responses
+
+History is sent **every turn** before new audio to maintain context.
 
 ## API Endpoints
 
 ### Session Management
-- `POST /session/start` - Start a new Nova Sonic session
-- `POST /audio/chunk` - Send audio chunk to session
-- `POST /audio/end` - Signal end of audio input
-- `GET /events/stream/{sessionId}` - SSE stream for responses
-- `DELETE /session/{sessionId}` - End a session
-- `GET /session/{sessionId}/info` - Get session information
+- `POST /session/start` - Start new session (with optional recovery)
+- `POST /session/end` - End session
+- `GET /session/status` - Get session info
 
-### Conversation State
-- `GET /conversation/{sessionId}/state` - Get conversation state
-- `POST /conversation/{sessionId}/slot` - Set a slot value
-- `GET /conversation/{sessionId}/summary` - Get conversation summary
-- `GET /conversation/{sessionId}/output` - Generate final JSON output
-- `DELETE /conversation/{sessionId}` - Delete conversation session
+### Audio Streaming
+- `POST /audio/start` - Begin audio input
+- `POST /audio/chunk` - Send audio data (base64 PCM)
+- `POST /audio/end` - Finalize turn and prepare for next
 
-### HCP Management
-- `GET /hcp/list` - List all valid HCP names
-- `GET /hcp/lookup?name={name}` - Lookup HCP by name
+### Database
+- `GET /db/healthz` - Check DB status and active source
+- `GET /api/calls/history` - Get call records
 
-### Health & Monitoring
-- `GET /` - Root endpoint
-- `GET /health` - Health check
-- `GET /db/healthz` - Database health check (if Redshift configured)
+## Testing
 
-## Configuration
+Visit: `http://localhost:8000/voice-test.html`
 
-All configuration is done via environment variables (see `.env.example`).
+### Test Conversation History
 
-Key settings:
-- **AWS_REGION**: AWS region for Bedrock (default: us-east-1)
-- **BEDROCK_MODEL_ID**: Nova Sonic model ID
-- **APP_PORT**: Server port (default: 8000)
-- **VOICE_ID**: Nova Sonic voice (matthew, ruth, etc.)
+Try this conversation to verify history is working:
 
-## Tool Integration
+```
+Turn 1:
+You: "My name is John and I work at ABC company"
+Bot: [Responds and acknowledges]
 
-The agent can use these tools during conversations:
+Turn 2:
+You: "What did I just tell you?"
+Bot: "You told me your name is John and you work at ABC company"
+```
 
-1. **getDateTool** - Get current date/time
-2. **lookupHcpTool** - Lookup healthcare professional by name
-3. **insertCallTool** - Persist call record to database
-4. **emitN8nEventTool** - Send events to n8n webhook
-5. **createFollowUpTaskTool** - Create follow-up tasks in CRM
+If the bot can recall what you said, conversation history is working! ✅
 
-## Development Notes
+### Features:
+- Real-time voice conversation
+- Conversation history preserved across turns
+- Tool calling (HCP lookup, dates, etc.)
+- Audio transcription
+- Multi-turn context
 
-### Differences from Python Version
+## Database Fallback
 
-- Uses Express.js instead of FastAPI
-- TypeScript for type safety
-- RxJS for reactive streams
-- Winston for structured logging
-- Native AWS SDK v3 for JavaScript
+Tries Redshift first, falls back to local SQLite automatically.
 
-### Testing
+Status: `GET /db/healthz`
 
-You can test the API using:
-- The included HTML test pages (add to `public/` folder)
-- cURL commands
-- Postman/Insomnia
-- WebSocket clients
+Force SQLite: `POST /db/force-sqlite`
 
-## License
+Retry Redshift: `POST /db/retry-redshift`
 
-MIT
+## Debugging
 
-## Support
+Logs: `tail -f server.log`
 
-For issues or questions, please refer to the project documentation or contact the development team.
+Check session: `GET /session/status?sessionId=<id>`
 
+## Project Structure
+
+```
+src/
+├── index.js                    # Main Express server
+├── config.js                   # Environment config
+├── databaseAdapter.js          # DB fallback logic
+├── services/
+│   ├── novaSonicClient.js      # Bedrock streaming client
+│   ├── sessionManager.js       # Session lifecycle
+│   └── bedrockSessionService.js # History persistence
+└── models/
+    └── session.js              # Session data types
+```
+
+## Notes
+
+- Audio format: 16-bit PCM, 16kHz, mono
+- Max session duration: 30 minutes
+- Max concurrent sessions: 100
+- History stored externally (Bedrock Agent Runtime)

@@ -14,6 +14,8 @@ const databaseAdapter_1 = __importDefault(require("./databaseAdapter")); // Use 
 const bedrockSessionService_1 = require("./services/bedrockSessionService");
 const session_1 = require("./models/session");
 const prompting_1 = require("./prompting");
+// WebSocket server for text mode
+const websocketServer_1 = require("./websocketServer");
 // CallRecordingAnalyzer is optional - only import if available
 let callRecordingAnalyzer = null;
 try {
@@ -54,10 +56,13 @@ app.get('/health', (_req, res) => {
     });
 });
 app.get('/test', (_req, res) => {
-    res.sendFile(path_1.default.join(__dirname, '..', 'public', 'voice-test.html'));
+    res.sendFile(path_1.default.join(__dirname, '..', 'public', 'voice-test-enhanced.html'));
 });
 app.get('/voice-test.html', (_req, res) => {
     res.sendFile(path_1.default.join(__dirname, '..', 'public', 'voice-test.html'));
+});
+app.get('/voice-test-enhanced.html', (_req, res) => {
+    res.sendFile(path_1.default.join(__dirname, '..', 'public', 'voice-test-enhanced.html'));
 });
 
 // Call History Endpoints
@@ -692,11 +697,16 @@ const server = app.listen(config_1.default.app.port, config_1.default.app.host, 
     logger_1.default.info(`Bedrock Model: ${config_1.default.bedrock.modelId}`);
     logger_1.default.info('='.repeat(71));
 });
+// Initialize WebSocket server for text mode
+const wsServer = new websocketServer_1.WebSocketServer(server);
+logger_1.default.info('🔌 WebSocket server initialized on /ws');
 // Graceful shutdown
 process.on('SIGTERM', async () => {
     logger_1.default.info('SIGTERM received. Starting graceful shutdown...');
     server.close(async () => {
         logger_1.default.info('HTTP server closed');
+        // Shutdown WebSocket server
+        wsServer.close();
         // Shutdown session manager
         await sessionManager_1.sessionManager.shutdown();
         logger_1.default.info('Graceful shutdown complete');
@@ -707,6 +717,8 @@ process.on('SIGINT', async () => {
     logger_1.default.info('SIGINT received. Starting graceful shutdown...');
     server.close(async () => {
         logger_1.default.info('HTTP server closed');
+        // Shutdown WebSocket server
+        wsServer.close();
         // Shutdown session manager
         await sessionManager_1.sessionManager.shutdown();
         logger_1.default.info('Graceful shutdown complete');

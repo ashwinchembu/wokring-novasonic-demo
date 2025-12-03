@@ -113,6 +113,20 @@ defineProps({
   color: #c4b5fd;
 }
 
+/* Paused */
+.status-badge.paused {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.paused .status-dot {
+  background: #f59e0b;
+}
+
+.status-badge.paused .status-text {
+  color: #fcd34d;
+}
+
 @keyframes pulse-dot {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.3); opacity: 0.7; }

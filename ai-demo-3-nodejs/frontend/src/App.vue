@@ -10,14 +10,16 @@ import CallHistoryTable from './components/CallHistoryTable.vue'
 import StatsPanel from './components/StatsPanel.vue'
 import JsonModal from './components/JsonModal.vue'
 import TextInput from './components/TextInput.vue'
+import DatabasePanel from './components/DatabasePanel.vue'
 import config from './config'
 
 // ==================== STATE ====================
 const state = reactive({
-  status: 'disconnected', // disconnected, connecting, connected, recording, processing
+  status: 'disconnected', // disconnected, connecting, connected, recording, processing, paused
   sessionId: null,
   bedrockSessionId: localStorage.getItem('bedrockSessionId') || null,
   isRecording: false,
+  isPaused: false, // Pause recording without ending the session
   isPlaying: false,
   audioLevel: 0,
   mode: 'voice', // 'voice' or 'text'
@@ -98,19 +100,29 @@ let autoSaveTimeout = null
 
 // ==================== COMPUTED ====================
 const canConnect = computed(() => state.status === 'disconnected')
-const canDisconnect = computed(() => ['connected', 'recording', 'processing'].includes(state.status))
-const canRecord = computed(() => ['connected', 'processing'].includes(state.status) && state.mode === 'voice')
+const canDisconnect = computed(() => ['connected', 'recording', 'processing', 'paused'].includes(state.status))
+const canRecord = computed(() => ['connected', 'processing', 'paused'].includes(state.status) && state.mode === 'voice')
+const canPause = computed(() => state.status === 'recording' && state.isRecording && !state.isPaused)
+const canResume = computed(() => state.isPaused)
 const canSendText = computed(() => ['connected', 'processing'].includes(state.status) && state.mode === 'text')
 
 const statusText = computed(() => {
+  if (state.isPaused) return 'Paused'
   switch (state.status) {
     case 'disconnected': return 'Disconnected'
     case 'connecting': return 'Connecting...'
     case 'connected': return 'Ready'
     case 'recording': return 'Listening...'
     case 'processing': return 'Processing...'
+    case 'paused': return 'Paused'
     default: return state.status
   }
+})
+
+// Display status for badge (accounts for paused state)
+const displayStatus = computed(() => {
+  if (state.isPaused) return 'paused'
+  return state.status
 })
 
 const hasRecoverySession = computed(() => !!state.bedrockSessionId && state.status === 'disconnected')
@@ -412,11 +424,34 @@ function startEventStream() {
 
 // ==================== AUDIO RECORDING ====================
 async function toggleRecording() {
-  if (state.isRecording) {
+  if (state.isRecording && !state.isPaused) {
     await stopRecording()
+  } else if (state.isPaused) {
+    await resumeRecording()
   } else {
     await startRecording()
   }
+}
+
+async function pauseRecording() {
+  if (!state.isRecording) return
+  
+  state.isPaused = true
+  state.status = 'paused'
+  state.audioLevel = 0
+  
+  addMessage('system', '⏸️ Recording paused - tap to resume')
+  showNotification('Recording paused', 'info')
+}
+
+async function resumeRecording() {
+  if (!state.isPaused) return
+  
+  state.isPaused = false
+  state.status = 'recording'
+  
+  addMessage('system', '▶️ Recording resumed')
+  showNotification('Recording resumed', 'success')
 }
 
 async function startRecording() {
@@ -518,6 +553,12 @@ async function stopRecording() {
 }
 
 async function processAudioChunk(audioData) {
+  // Skip processing if paused
+  if (state.isPaused) {
+    state.audioLevel = 0
+    return
+  }
+  
   try {
     // Calculate audio level for visualizer
     const rms = Math.sqrt(audioData.reduce((sum, val) => sum + val * val, 0) / audioData.length)
@@ -1001,7 +1042,7 @@ function clearMessages() {
           <span class="logo-icon">🎙️</span>
           <h1>Nova Sonic</h1>
         </div>
-        <StatusBadge :status="state.status" :text="statusText" />
+        <StatusBadge :status="displayStatus" :text="statusText" />
       </header>
 
       <!-- Session Recovery Notice -->
@@ -1040,7 +1081,8 @@ function clearMessages() {
           <button 
             class="record-button"
             :class="{ 
-              recording: state.isRecording,
+              recording: state.isRecording && !state.isPaused,
+              paused: state.isPaused,
               disabled: !canRecord,
               processing: state.status === 'processing'
             }"
@@ -1048,28 +1090,54 @@ function clearMessages() {
             @click="toggleRecording"
           >
             <div class="record-button-inner">
-              <div class="record-icon" :class="{ active: state.isRecording }">
+              <div class="record-icon" :class="{ active: state.isRecording && !state.isPaused }">
                 <span v-if="state.status === 'processing'" class="spinner"></span>
+                <span v-else-if="state.isPaused">▶️</span>
                 <span v-else-if="state.isRecording">⏹️</span>
                 <span v-else>🎙️</span>
               </div>
               <div class="record-text">
                 <template v-if="state.status === 'processing'">Processing...</template>
+                <template v-else-if="state.isPaused">Tap to Resume</template>
                 <template v-else-if="state.isRecording">Tap to Stop</template>
                 <template v-else-if="canRecord">Tap to Speak</template>
                 <template v-else>Connect First</template>
               </div>
             </div>
             
-            <!-- Pulse animation when recording -->
-            <div v-if="state.isRecording" class="pulse-ring"></div>
-            <div v-if="state.isRecording" class="pulse-ring delay-1"></div>
-            <div v-if="state.isRecording" class="pulse-ring delay-2"></div>
+            <!-- Pulse animation when recording (not paused) -->
+            <div v-if="state.isRecording && !state.isPaused" class="pulse-ring"></div>
+            <div v-if="state.isRecording && !state.isPaused" class="pulse-ring delay-1"></div>
+            <div v-if="state.isRecording && !state.isPaused" class="pulse-ring delay-2"></div>
           </button>
+
+          <!-- Pause/Resume Button (only shown when recording) -->
+          <div v-if="state.isRecording" class="pause-controls">
+            <button 
+              v-if="!state.isPaused"
+              class="btn btn-pause"
+              @click="pauseRecording"
+            >
+              ⏸️ Pause
+            </button>
+            <button 
+              v-else
+              class="btn btn-resume"
+              @click="resumeRecording"
+            >
+              ▶️ Resume
+            </button>
+            <button 
+              class="btn btn-stop"
+              @click="stopRecording"
+            >
+              ⏹️ Stop
+            </button>
+          </div>
 
           <!-- Audio Visualizer -->
           <AudioVisualizer 
-            :active="state.isRecording" 
+            :active="state.isRecording && !state.isPaused" 
             :level="state.audioLevel"
             :isPlaying="state.isPlaying"
           />
@@ -1124,11 +1192,14 @@ function clearMessages() {
         {{ state.showAdvanced ? '▲ Hide Details' : '▼ Show Call Log & History' }}
       </button>
 
-      <!-- Advanced Panels (HCP, Call Log, History, Stats) -->
+      <!-- Advanced Panels (HCP, Call Log, History, Stats, Database) -->
       <Transition name="slide">
         <div v-if="state.showAdvanced" class="advanced-panels">
           <!-- Stats Panel -->
           <StatsPanel :stats="stats" />
+          
+          <!-- Database Panel -->
+          <DatabasePanel />
           
           <!-- HCP List -->
           <HcpList />
@@ -1503,6 +1574,11 @@ body {
   box-shadow: var(--shadow-lg), 0 0 60px rgba(239, 68, 68, 0.4);
 }
 
+.record-button.paused {
+  background: linear-gradient(135deg, var(--accent-yellow), var(--accent-purple));
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(245, 158, 11, 0.4);
+}
+
 .record-button.processing {
   background: var(--gradient-success);
   box-shadow: var(--shadow-lg), 0 0 40px rgba(6, 182, 212, 0.3);
@@ -1583,6 +1659,50 @@ body {
     transform: scale(1.5);
     opacity: 0;
   }
+}
+
+/* ==================== PAUSE CONTROLS ==================== */
+.pause-controls {
+  display: flex;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 300px;
+}
+
+.pause-controls .btn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+}
+
+.btn-pause {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.btn-pause:hover {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.btn-resume {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.btn-resume:hover {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.btn-stop {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.btn-stop:hover {
+  background: rgba(239, 68, 68, 0.3);
 }
 
 /* ==================== BUTTON ROW ==================== */

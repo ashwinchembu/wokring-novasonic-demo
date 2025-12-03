@@ -3,8 +3,8 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  // Use '/' for root in production (Render static site), '/app/' for embedded mode
-  base: process.env.NODE_ENV === 'production' ? '/' : '/app/',
+  // Use '/' for root on Render static site, '/app/' for embedded mode in local dev
+  base: process.env.RENDER ? '/' : '/app/',
   server: {
     port: 3000,
     proxy: {

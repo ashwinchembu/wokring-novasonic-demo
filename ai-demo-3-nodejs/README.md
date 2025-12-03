@@ -104,9 +104,43 @@ History is sent **every turn** before new audio to maintain context.
 - `GET /db/healthz` - Check DB status and active source
 - `GET /api/calls/history` - Get call records
 
+## Vue.js Frontend (iPad Optimized)
+
+The project includes a Vue.js frontend designed specifically for iPad Safari:
+
+### Using the Vue App
+
+**Production (pre-built):**
+```
+http://localhost:8000/app
+```
+
+**Development (with hot reload):**
+```bash
+npm run frontend:dev
+# Opens at http://localhost:3000 with API proxy
+```
+
+**Rebuild:**
+```bash
+npm run build:frontend
+```
+
+### iPad Safari Features
+- AudioContext created on user gesture
+- Context resume handling for iOS restrictions
+- Touch-optimized UI with large tap targets
+- Dynamic viewport (`100dvh`) for Safari toolbar
+- Safe area insets for notched devices
+- PWA-ready with home screen support
+
+See `frontend/README.md` for full details.
+
 ## Testing
 
-Visit: `http://localhost:8000/voice-test.html`
+Visit: `http://localhost:8000/app` (Vue app - **recommended for iPad**)
+
+Or legacy test pages: `http://localhost:8000/voice-test.html`
 
 ### Test Conversation History
 
@@ -150,16 +184,31 @@ Check session: `GET /session/status?sessionId=<id>`
 ## Project Structure
 
 ```
-src/
-├── index.js                    # Main Express server
-├── config.js                   # Environment config
-├── databaseAdapter.js          # DB fallback logic
-├── services/
-│   ├── novaSonicClient.js      # Bedrock streaming client
-│   ├── sessionManager.js       # Session lifecycle
-│   └── bedrockSessionService.js # History persistence
-└── models/
-    └── session.js              # Session data types
+├── src/                        # Backend (Node.js/Express)
+│   ├── index.js                # Main Express server
+│   ├── config.js               # Environment config
+│   ├── databaseAdapter.js      # DB fallback logic
+│   ├── services/
+│   │   ├── novaSonicClient.js  # Bedrock streaming client
+│   │   ├── sessionManager.js   # Session lifecycle
+│   │   └── bedrockSessionService.js
+│   └── models/
+│       └── session.js          # Session data types
+│
+├── frontend/                   # Vue.js frontend
+│   ├── src/
+│   │   ├── App.vue             # Main app with voice logic
+│   │   └── components/
+│   │       ├── StatusBadge.vue
+│   │       ├── AudioVisualizer.vue
+│   │       ├── TranscriptBox.vue
+│   │       └── ToolLog.vue
+│   ├── vite.config.js          # Build config
+│   └── package.json
+│
+└── public/                     # Static files
+    ├── vue-app/                # Built Vue app (served at /app)
+    └── voice-test.html         # Legacy test pages
 ```
 
 ## Notes

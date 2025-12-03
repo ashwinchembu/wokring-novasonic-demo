@@ -33,6 +33,11 @@ app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
 // Serve static files from public directory
 app.use('/public', express_1.default.static(path_1.default.join(__dirname, '..', 'public')));
 app.use(express_1.default.static(path_1.default.join(__dirname, '..', 'public'))); // Also serve from root
+// Serve Vue app from /app path
+app.use('/app', express_1.default.static(path_1.default.join(__dirname, '..', 'public', 'vue-app')));
+app.get('/app/*', (_req, res) => {
+    res.sendFile(path_1.default.join(__dirname, '..', 'public', 'vue-app', 'index.html'));
+});
 // Request logging middleware
 app.use((req, _res, next) => {
     logger_1.default.info(`${req.method} ${req.path}`);

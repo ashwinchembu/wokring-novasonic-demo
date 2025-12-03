@@ -29,9 +29,11 @@ let audioContext = null
 let mediaStream = null
 let audioProcessor = null
 let playbackContext = null
-let audioQueue = []
-let isProcessingQueue = false
 let eventSource = null
+
+// Improved audio playback with seamless buffering
+let nextPlayTime = 0
+const BUFFER_AHEAD_TIME = 0.05 // 50ms buffer to prevent gaps
 
 // ==================== COMPUTED ====================
 const canConnect = computed(() => state.status === 'disconnected')
@@ -164,6 +166,8 @@ function startEventStream() {
     if (state.status === 'processing') {
       state.status = 'connected'
     }
+    // Reset audio timing for next response
+    resetAudioPlayback()
   })
 
   eventSource.addEventListener('tool_log', (e) => {
@@ -327,39 +331,20 @@ async function processAudioChunk(audioData) {
 
 // ==================== AUDIO PLAYBACK ====================
 async function queueAudio(base64Audio, sampleRate) {
-  audioQueue.push({ base64Audio, sampleRate })
-  
-  if (!isProcessingQueue) {
-    processAudioQueue()
+  // Initialize playback context if needed
+  if (!playbackContext || playbackContext.state === 'closed') {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    // Use device's preferred sample rate for best quality
+    playbackContext = new AudioContextClass()
   }
-}
 
-async function processAudioQueue() {
-  if (isProcessingQueue || audioQueue.length === 0) return
-  
-  isProcessingQueue = true
-  
-  while (audioQueue.length > 0) {
-    const { base64Audio, sampleRate } = audioQueue.shift()
-    await playAudio(base64Audio, sampleRate)
+  // iOS Safari: resume if suspended
+  if (playbackContext.state === 'suspended') {
+    await playbackContext.resume()
   }
-  
-  isProcessingQueue = false
-}
 
-async function playAudio(base64Audio, sampleRate = 24000) {
+  // Decode and schedule audio immediately
   try {
-    // Initialize playback context (iOS Safari compatible)
-    if (!playbackContext || playbackContext.state === 'closed') {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext
-      playbackContext = new AudioContextClass({ sampleRate })
-    }
-
-    // iOS Safari: resume if suspended
-    if (playbackContext.state === 'suspended') {
-      await playbackContext.resume()
-    }
-
     // Decode base64 to binary
     const binaryString = atob(base64Audio)
     const bytes = new Uint8Array(binaryString.length)
@@ -370,7 +355,7 @@ async function playAudio(base64Audio, sampleRate = 24000) {
     // Convert to Int16Array (PCM)
     const int16Array = new Int16Array(bytes.buffer)
 
-    // Create audio buffer
+    // Create audio buffer at source sample rate, then let browser resample
     const audioBuffer = playbackContext.createBuffer(1, int16Array.length, sampleRate)
     const channelData = audioBuffer.getChannelData(0)
 
@@ -379,17 +364,32 @@ async function playAudio(base64Audio, sampleRate = 24000) {
       channelData[i] = int16Array[i] / 32768.0
     }
 
-    // Create and play source
+    // Schedule playback with precise timing to avoid gaps
     const source = playbackContext.createBufferSource()
     source.buffer = audioBuffer
     source.connect(playbackContext.destination)
+
+    const currentTime = playbackContext.currentTime
     
-    return new Promise((resolve) => {
-      source.onended = resolve
-      source.start(0)
-    })
+    // If we're behind, catch up; otherwise schedule ahead
+    if (nextPlayTime < currentTime) {
+      nextPlayTime = currentTime + BUFFER_AHEAD_TIME
+    }
+
+    source.start(nextPlayTime)
+    nextPlayTime += audioBuffer.duration
+
   } catch (error) {
     console.error('Playback error:', error)
+  }
+}
+
+// Reset playback timing when content ends
+function resetAudioPlayback() {
+  nextPlayTime = 0
+  if (playbackContext && playbackContext.state !== 'closed') {
+    // Don't close the context, just reset timing
+    nextPlayTime = playbackContext.currentTime
   }
 }
 

@@ -1,7 +1,6 @@
 # Render Blueprint for Nova Sonic Voice API
 # Deploy frontend and backend as separate services
 # Documentation: https://render.com/docs/blueprint-spec
-# Repository: https://github.com/ashwinchembu/wokring-novasonic-demo
 
 services:
   # ===== BACKEND SERVICE =====
@@ -11,8 +10,7 @@ services:
     region: oregon # or your preferred region
     plan: starter # starter, standard, pro
     branch: main
-    repo: https://github.com/ashwinchembu/wokring-novasonic-demo
-    rootDir: ai-demo-3-nodejs
+    rootDir: ./
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
@@ -57,8 +55,7 @@ services:
     runtime: static
     region: oregon
     branch: main
-    repo: https://github.com/ashwinchembu/wokring-novasonic-demo
-    rootDir: ai-demo-3-nodejs/frontend
+    rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     headers:

@@ -1,19 +1,27 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import StatusBadge from './components/StatusBadge.vue'
 import AudioVisualizer from './components/AudioVisualizer.vue'
 import TranscriptBox from './components/TranscriptBox.vue'
 import ToolLog from './components/ToolLog.vue'
+import HcpList from './components/HcpList.vue'
+import CallLogTable from './components/CallLogTable.vue'
+import CallHistoryTable from './components/CallHistoryTable.vue'
+import StatsPanel from './components/StatsPanel.vue'
+import JsonModal from './components/JsonModal.vue'
+import TextInput from './components/TextInput.vue'
 import config from './config'
 
 // ==================== STATE ====================
 const state = reactive({
   status: 'disconnected', // disconnected, connecting, connected, recording, processing
   sessionId: null,
-  bedrockSessionId: null,
+  bedrockSessionId: localStorage.getItem('bedrockSessionId') || null,
   isRecording: false,
   isPlaying: false,
   audioLevel: 0,
+  mode: 'voice', // 'voice' or 'text'
+  showAdvanced: false, // toggle for advanced panels
 })
 
 const messages = ref([
@@ -24,21 +32,75 @@ const toolLogs = ref([])
 const transcriptBox = ref(null)
 const isIOS = ref(false)
 
+// Stats tracking
+const stats = reactive({
+  audioChunks: 0,
+  transcripts: 0,
+  audioResponses: 0,
+  toolCalls: 0
+})
+
+// Call log data tracking (matches voice-test.html schema)
+const callLogData = reactive({
+  call_channel: '',
+  discussion_topic: '',
+  status: '',
+  account: '',
+  id: '',
+  adverse_event: false,
+  adverse_event_details: null,
+  noncompliance_event: false,
+  noncompliance_description: '',
+  call_notes: '',
+  call_date: null,
+  call_time: null,
+  product: '',
+  hcp_name: '',
+  hcp_id: '',
+  call_follow_up_task: {
+    task_type: '',
+    description: '',
+    due_date: '',
+    assigned_to: ''
+  }
+})
+
+const requiredFields = ['hcp_name', 'call_date', 'call_time', 'product']
+
+// Call history
+const callHistory = ref([])
+const historyLoading = ref(false)
+
+// JSON Modal state
+const modalState = reactive({
+  visible: false,
+  data: null,
+  index: null
+})
+
+// Notification state
+const notifications = ref([])
+
 // Audio state
 let audioContext = null
 let mediaStream = null
 let audioProcessor = null
 let playbackContext = null
 let eventSource = null
+let websocket = null
 
 // Improved audio playback with seamless buffering
 let nextPlayTime = 0
 const BUFFER_AHEAD_TIME = 0.05 // 50ms buffer to prevent gaps
 
+// Auto-save timeout
+let autoSaveTimeout = null
+
 // ==================== COMPUTED ====================
 const canConnect = computed(() => state.status === 'disconnected')
 const canDisconnect = computed(() => ['connected', 'recording', 'processing'].includes(state.status))
-const canRecord = computed(() => ['connected', 'processing'].includes(state.status))
+const canRecord = computed(() => ['connected', 'processing'].includes(state.status) && state.mode === 'voice')
+const canSendText = computed(() => ['connected', 'processing'].includes(state.status) && state.mode === 'text')
 
 const statusText = computed(() => {
   switch (state.status) {
@@ -50,6 +112,8 @@ const statusText = computed(() => {
     default: return state.status
   }
 })
+
+const hasRecoverySession = computed(() => !!state.bedrockSessionId && state.status === 'disconnected')
 
 // ==================== LIFECYCLE ====================
 onMounted(() => {
@@ -66,22 +130,68 @@ onMounted(() => {
       lastTouchEnd = now
     }, { passive: false })
   }
+  
+  // Load call history from Redshift on mount
+  loadHistoryFromRedshift()
 })
 
 onUnmounted(() => {
   cleanup()
 })
 
+// ==================== NOTIFICATIONS ====================
+function showNotification(message, type = 'info') {
+  const id = Date.now() + Math.random()
+  notifications.value.push({ id, message, type })
+  
+  setTimeout(() => {
+    notifications.value = notifications.value.filter(n => n.id !== id)
+  }, 4000)
+}
+
+// ==================== MODE SWITCHING ====================
+function switchMode(mode) {
+  if (state.mode === mode) return
+  
+  state.mode = mode
+  
+  if (mode === 'voice') {
+    // Close WebSocket if open
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.close()
+      websocket = null
+    }
+  } else {
+    // Init WebSocket for text mode if session active
+    if (state.sessionId) {
+      initWebSocket()
+    }
+  }
+  
+  addMessage('system', `Switched to ${mode} mode`)
+}
+
 // ==================== CONNECTION ====================
 async function connect() {
   try {
     state.status = 'connecting'
     addMessage('system', '🔄 Connecting to Nova Sonic...')
+    
+    // Initialize audio context on user interaction (iOS requirement)
+    initPlaybackContext()
+
+    const requestBody = {}
+    
+    // Try to recover session if we have a stored Bedrock session
+    if (state.bedrockSessionId) {
+      requestBody.existingBedrockSessionId = state.bedrockSessionId
+      console.log('🔄 Attempting session recovery with:', state.bedrockSessionId)
+    }
 
     const response = await fetch(config.endpoints.sessionStart, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
@@ -90,13 +200,29 @@ async function connect() {
 
     const data = await response.json()
     state.sessionId = data.sessionId
-    state.bedrockSessionId = data.bedrockSessionId
+    
+    if (data.bedrockSessionId) {
+      state.bedrockSessionId = data.bedrockSessionId
+      localStorage.setItem('bedrockSessionId', data.bedrockSessionId)
+    }
+    
     state.status = 'connected'
 
-    // Start SSE stream
+    // Start SSE stream for voice mode
     startEventStream()
+    
+    // Init WebSocket for text mode if that's the current mode
+    if (state.mode === 'text') {
+      initWebSocket()
+    }
 
     addMessage('system', '✅ Connected! Tap the microphone to speak.')
+    
+    // Show recovery message if we recovered history
+    if (data.conversationHistory && data.conversationHistory.length > 0) {
+      addMessage('system', `🔄 Session recovered! Loaded ${data.conversationHistory.length} previous turns.`)
+      showNotification('Session recovered from previous conversation!', 'success')
+    }
   } catch (error) {
     console.error('Connection error:', error)
     state.status = 'disconnected'
@@ -113,10 +239,10 @@ async function disconnect() {
     }
 
     state.sessionId = null
-    state.bedrockSessionId = null
+    // Keep bedrockSessionId for potential recovery
     state.status = 'disconnected'
 
-    addMessage('system', '👋 Session ended')
+    addMessage('system', '👋 Session ended - Bedrock session preserved for recovery')
   } catch (error) {
     console.error('Disconnect error:', error)
   }
@@ -128,12 +254,99 @@ function cleanup() {
     eventSource = null
   }
   
+  if (websocket) {
+    websocket.close()
+    websocket = null
+  }
+  
   stopRecording()
   
   if (playbackContext && playbackContext.state !== 'closed') {
     playbackContext.close()
     playbackContext = null
   }
+  
+  if (autoSaveTimeout) {
+    clearTimeout(autoSaveTimeout)
+    autoSaveTimeout = null
+  }
+}
+
+function clearStoredSession() {
+  localStorage.removeItem('bedrockSessionId')
+  state.bedrockSessionId = null
+  addMessage('system', '🔄 Stored session cleared - next session will start fresh')
+}
+
+// ==================== WEBSOCKET (Text Mode) ====================
+function initWebSocket() {
+  if (websocket && websocket.readyState === WebSocket.OPEN) return
+  
+  console.log('🔌 Connecting to WebSocket:', config.wsUrl + '/ws')
+  websocket = new WebSocket(config.wsUrl + '/ws')
+  
+  websocket.onopen = () => {
+    console.log('✅ WebSocket connected')
+    addMessage('system', '🔌 WebSocket connected')
+    
+    // Connect to session
+    websocket.send(JSON.stringify({
+      type: 'connect_session',
+      sessionId: state.sessionId
+    }))
+  }
+  
+  websocket.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    console.log('📨 WebSocket message:', data.type)
+    
+    switch (data.type) {
+      case 'welcome':
+      case 'session_connected':
+        addMessage('system', data.message || '✅ Connected to session')
+        break
+      case 'transcript':
+        addMessage(data.speaker, data.text, data.timestamp)
+        parseTranscriptForData(data.text, data.speaker)
+        stats.transcripts++
+        break
+      case 'processing':
+        addMessage('system', data.message)
+        break
+      case 'error':
+        addMessage('system', `❌ Error: ${data.message}`)
+        break
+    }
+  }
+  
+  websocket.onerror = (error) => {
+    console.error('❌ WebSocket error:', error)
+    addMessage('system', '❌ WebSocket connection error')
+  }
+  
+  websocket.onclose = () => {
+    console.log('🔌 WebSocket closed')
+    if (state.sessionId) {
+      addMessage('system', '🔌 WebSocket disconnected')
+    }
+  }
+}
+
+async function sendTextMessage(text) {
+  if (!text || !websocket || websocket.readyState !== WebSocket.OPEN) {
+    showNotification('WebSocket not connected', 'error')
+    return
+  }
+  
+  console.log('📤 Sending text message:', text)
+  
+  websocket.send(JSON.stringify({
+    type: 'text_message',
+    text: text
+  }))
+  
+  addMessage('user', text)
+  stats.transcripts++
 }
 
 // ==================== EVENT STREAM (SSE) ====================
@@ -147,11 +360,14 @@ function startEventStream() {
   eventSource.addEventListener('transcript', (e) => {
     const data = JSON.parse(e.data)
     addMessage(data.speaker, data.text)
+    parseTranscriptForData(data.text, data.speaker)
+    stats.transcripts++
   })
 
   eventSource.addEventListener('audio', (e) => {
     const data = JSON.parse(e.data)
     queueAudio(data.audioData, data.sampleRate || 24000)
+    stats.audioResponses++
   })
 
   eventSource.addEventListener('content_start', (e) => {
@@ -176,6 +392,12 @@ function startEventStream() {
       id: Date.now() + Math.random(),
       ...data
     })
+    stats.toolCalls++
+    
+    // Handle tool results for data extraction
+    if (data.type === 'tool_result') {
+      handleToolResult(data.toolName, data.result)
+    }
   })
 
   eventSource.addEventListener('status', (e) => {
@@ -185,7 +407,6 @@ function startEventStream() {
 
   eventSource.addEventListener('error', (e) => {
     console.error('SSE error:', e)
-    // Don't reconnect on all errors, just log for now
   })
 }
 
@@ -324,24 +545,30 @@ async function processAudioChunk(audioData) {
         channels: 1
       })
     })
+    
+    stats.audioChunks++
   } catch (error) {
     console.error('Audio chunk error:', error)
   }
 }
 
 // ==================== AUDIO PLAYBACK ====================
-async function queueAudio(base64Audio, sampleRate) {
-  // Initialize playback context if needed
+function initPlaybackContext() {
   if (!playbackContext || playbackContext.state === 'closed') {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext
-    // Use device's preferred sample rate for best quality
     playbackContext = new AudioContextClass()
   }
-
-  // iOS Safari: resume if suspended
+  
   if (playbackContext.state === 'suspended') {
-    await playbackContext.resume()
+    playbackContext.resume()
   }
+  
+  return playbackContext
+}
+
+async function queueAudio(base64Audio, sampleRate) {
+  // Initialize playback context if needed
+  const ctx = initPlaybackContext()
 
   // Decode and schedule audio immediately
   try {
@@ -356,7 +583,7 @@ async function queueAudio(base64Audio, sampleRate) {
     const int16Array = new Int16Array(bytes.buffer)
 
     // Create audio buffer at source sample rate, then let browser resample
-    const audioBuffer = playbackContext.createBuffer(1, int16Array.length, sampleRate)
+    const audioBuffer = ctx.createBuffer(1, int16Array.length, sampleRate)
     const channelData = audioBuffer.getChannelData(0)
 
     // Normalize PCM data
@@ -365,11 +592,11 @@ async function queueAudio(base64Audio, sampleRate) {
     }
 
     // Schedule playback with precise timing to avoid gaps
-    const source = playbackContext.createBufferSource()
+    const source = ctx.createBufferSource()
     source.buffer = audioBuffer
-    source.connect(playbackContext.destination)
+    source.connect(ctx.destination)
 
-    const currentTime = playbackContext.currentTime
+    const currentTime = ctx.currentTime
     
     // If we're behind, catch up; otherwise schedule ahead
     if (nextPlayTime < currentTime) {
@@ -384,22 +611,341 @@ async function queueAudio(base64Audio, sampleRate) {
   }
 }
 
-// Reset playback timing when content ends
 function resetAudioPlayback() {
   nextPlayTime = 0
   if (playbackContext && playbackContext.state !== 'closed') {
-    // Don't close the context, just reset timing
     nextPlayTime = playbackContext.currentTime
   }
 }
 
+// ==================== CALL LOG DATA EXTRACTION ====================
+function parseTranscriptForData(text, speaker) {
+  if (speaker !== 'assistant') return
+
+  let dataUpdated = false
+
+  // Look for HCP name mentions
+  const hcpMatch = text.match(/(?:found|identified|confirmed)\s+(?:Dr\.|Doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i)
+  if (hcpMatch && !callLogData.hcp_name) {
+    callLogData.hcp_name = 'Dr. ' + hcpMatch[1]
+    dataUpdated = true
+    console.log('✅ Extracted HCP name from text:', callLogData.hcp_name)
+  }
+
+  // Look for dates
+  const dateMatch = text.match(/\b(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|today|yesterday)\b/i)
+  if (dateMatch && !callLogData.call_date) {
+    callLogData.call_date = dateMatch[1]
+    dataUpdated = true
+    console.log('✅ Extracted date from text:', callLogData.call_date)
+  }
+
+  // Look for time
+  const timeMatch = text.match(/\b(\d{1,2}:\d{2}\s*(?:AM|PM)?)\b/i)
+  if (timeMatch && !callLogData.call_time) {
+    callLogData.call_time = timeMatch[1]
+    dataUpdated = true
+    console.log('✅ Extracted time from text:', callLogData.call_time)
+  }
+
+  // Look for product mentions
+  const productPatterns = [
+    /(?:product|medication|drug|treatment)\s+(?:is|was)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
+    /(?:discussed|about)\s+([A-Z][a-z]{3,}(?:\s+[A-Z][a-z]+)?)/,
+    /(?:product|medication|drug|treatment):\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i
+  ]
+  
+  for (const pattern of productPatterns) {
+    const match = text.match(pattern)
+    if (match && !callLogData.product) {
+      let productName = match[1].trim()
+      productName = productName.replace(/^(was|is|discussed|about|the)\s+/gi, '')
+      
+      if (productName.length > 2) {
+        callLogData.product = productName
+        dataUpdated = true
+        console.log('✅ Extracted product from text:', callLogData.product)
+        break
+      }
+    }
+  }
+
+  if (dataUpdated) {
+    checkAutoSave()
+  }
+}
+
+function handleToolResult(toolName, result) {
+  console.log('🔧 handleToolResult:', toolName, result)
+  
+  let dataUpdated = false
+  
+  if (toolName === 'lookupHcpTool' && result && result.found) {
+    if (result.name && !callLogData.hcp_name) {
+      callLogData.hcp_name = result.name
+      dataUpdated = true
+    }
+    if (result.hcp_id && !callLogData.hcp_id) {
+      callLogData.hcp_id = result.hcp_id
+      dataUpdated = true
+    }
+    if (result.hco_name && !callLogData.account) {
+      callLogData.account = result.hco_name
+      dataUpdated = true
+    }
+  } else if (toolName === 'getDateTool' && result) {
+    if (result.date && !callLogData.call_date) {
+      callLogData.call_date = result.date
+      dataUpdated = true
+    }
+    if (result.time && !callLogData.call_time) {
+      callLogData.call_time = result.time
+      dataUpdated = true
+    }
+  } else if (toolName === 'insertCallTool' && result) {
+    if (result.ok) {
+      console.log('🎯 insertCallTool succeeded! Auto-saving to history...')
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout)
+        autoSaveTimeout = null
+      }
+      autoSaveCallLog()
+      return
+    }
+  }
+  
+  if (dataUpdated) {
+    checkAutoSave()
+  }
+}
+
+function checkAutoSave() {
+  const hasAllRequired = requiredFields.every(field => {
+    const value = callLogData[field]
+    return value && value !== '' && value !== null
+  })
+  
+  if (hasAllRequired) {
+    console.log('🎯 All required fields collected!')
+    
+    if (!autoSaveTimeout) {
+      console.log('⏱️ Auto-save scheduled in 5 seconds...')
+      autoSaveTimeout = setTimeout(() => {
+        autoSaveCallLog()
+        autoSaveTimeout = null
+      }, 5000)
+    }
+  }
+}
+
+function autoSaveCallLog() {
+  console.log('💾 AUTO-SAVING call log...')
+  
+  // Check if already saved this session
+  const lastSaved = callHistory.value.length > 0 ? callHistory.value[callHistory.value.length - 1] : null
+  if (lastSaved && lastSaved.session_id === state.sessionId) {
+    console.log('ℹ️ Call already saved for this session')
+    return
+  }
+  
+  const callLogCopy = {
+    ...JSON.parse(JSON.stringify(callLogData)),
+    exported_at: new Date().toISOString(),
+    session_id: state.sessionId,
+    auto_saved: true
+  }
+  
+  callHistory.value.push(callLogCopy)
+  saveHistoryToLocalStorage()
+  
+  addMessage('system', `💾 Call log #${callHistory.value.length} auto-saved!`)
+  showNotification('Call Log Auto-Saved!', 'success')
+}
+
+// ==================== CALL HISTORY ====================
+async function loadHistoryFromRedshift() {
+  try {
+    historyLoading.value = true
+    console.log('🔄 Loading call history from Redshift...')
+    
+    const response = await fetch(config.endpoints.callHistory)
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+    
+    const data = await response.json()
+    
+    if (data.calls && Array.isArray(data.calls)) {
+      callHistory.value = data.calls.map(call => ({
+        call_pk: call.call_pk,
+        hcp_name: call.id,
+        hcp_id: call.id,
+        account: call.account,
+        product: call.product,
+        call_date: call.call_date ? new Date(call.call_date).toISOString().split('T')[0] : null,
+        call_time: call.call_time,
+        call_channel: call.call_channel,
+        discussion_topic: call.discussion_topic,
+        status: call.status,
+        adverse_event: call.adverse_event,
+        noncompliance_event: call.noncompliance_event,
+        call_notes: call.call_notes,
+        followup_task_type: call.followup_task_type,
+        created_at: call.created_at,
+        source: 'redshift'
+      }))
+      
+      console.log(`✅ Loaded ${callHistory.value.length} calls from Redshift`)
+    } else {
+      // Try loading from localStorage if Redshift is empty
+      loadHistoryFromLocalStorage()
+    }
+  } catch (e) {
+    console.error('❌ Failed to load from Redshift:', e)
+    loadHistoryFromLocalStorage()
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+function loadHistoryFromLocalStorage() {
+  try {
+    const stored = localStorage.getItem('callHistory')
+    if (stored) {
+      callHistory.value = JSON.parse(stored)
+      console.log(`📂 Loaded ${callHistory.value.length} calls from localStorage`)
+    }
+  } catch (e) {
+    console.error('Failed to load from localStorage:', e)
+  }
+}
+
+function saveHistoryToLocalStorage() {
+  try {
+    localStorage.setItem('callHistory', JSON.stringify(callHistory.value))
+    console.log(`💾 Saved ${callHistory.value.length} calls to localStorage`)
+  } catch (e) {
+    console.error('Failed to save to localStorage:', e)
+  }
+}
+
+// ==================== EXPORT FUNCTIONS ====================
+function exportCallLogJson() {
+  const callLogCopy = {
+    ...JSON.parse(JSON.stringify(callLogData)),
+    exported_at: new Date().toISOString(),
+    session_id: state.sessionId
+  }
+  
+  callHistory.value.push(callLogCopy)
+  saveHistoryToLocalStorage()
+  
+  downloadJson(callLogCopy, `call-log-${formatTimestampForFile(new Date())}.json`)
+  addMessage('system', `💾 Call log #${callHistory.value.length} saved and exported`)
+  showNotification('Call log exported!', 'success')
+}
+
+function clearCallLogData() {
+  Object.assign(callLogData, {
+    call_channel: '',
+    discussion_topic: '',
+    status: '',
+    account: '',
+    id: '',
+    adverse_event: false,
+    adverse_event_details: null,
+    noncompliance_event: false,
+    noncompliance_description: '',
+    call_notes: '',
+    call_date: null,
+    call_time: null,
+    product: '',
+    hcp_name: '',
+    hcp_id: '',
+    call_follow_up_task: {
+      task_type: '',
+      description: '',
+      due_date: '',
+      assigned_to: ''
+    }
+  })
+  addMessage('system', '🗑️ Call log data cleared')
+}
+
+function testSaveCallLog() {
+  const testCall = {
+    hcp_name: 'Dr. Test ' + Date.now(),
+    hcp_id: 'TEST-' + Date.now(),
+    call_date: new Date().toISOString().split('T')[0],
+    call_time: new Date().toTimeString().split(' ')[0],
+    product: 'Test Product',
+    exported_at: new Date().toISOString(),
+    session_id: 'test-session',
+    test: true
+  }
+  
+  callHistory.value.push(testCall)
+  saveHistoryToLocalStorage()
+  
+  addMessage('system', `🧪 Test call #${callHistory.value.length} added`)
+  showNotification('Test call saved!', 'success')
+}
+
+function viewCallLog(index) {
+  modalState.data = callHistory.value[index]
+  modalState.index = index
+  modalState.visible = true
+}
+
+function downloadCallLog(index) {
+  const log = callHistory.value[index]
+  const timestamp = formatTimestampForFile(new Date(log.exported_at || log.created_at || Date.now()))
+  downloadJson(log, `call-log-${index + 1}-${timestamp}.json`)
+}
+
+function deleteCallLog(index) {
+  if (confirm(`Delete call log #${index + 1}?`)) {
+    callHistory.value.splice(index, 1)
+    saveHistoryToLocalStorage()
+    addMessage('system', `🗑️ Call log #${index + 1} deleted`)
+  }
+}
+
+function exportAllHistory() {
+  if (callHistory.value.length === 0) {
+    showNotification('No call history to export', 'error')
+    return
+  }
+  
+  const timestamp = formatTimestampForFile(new Date())
+  downloadJson(callHistory.value, `call-history-all-${timestamp}.json`)
+  addMessage('system', `📥 Exported ${callHistory.value.length} call logs`)
+}
+
+function downloadJson(data, filename) {
+  const jsonStr = JSON.stringify(data, null, 2)
+  const blob = new Blob([jsonStr], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function formatTimestampForFile(date) {
+  return date.toISOString().replace(/[:.]/g, '-').substring(0, 19)
+}
+
 // ==================== MESSAGES ====================
-function addMessage(type, text) {
+function addMessage(type, text, timestamp = null) {
   messages.value.push({
     id: Date.now() + Math.random(),
     type,
     text,
-    timestamp: new Date()
+    timestamp: timestamp || new Date()
   })
   
   // Auto-scroll
@@ -415,6 +961,14 @@ function clearMessages() {
     { id: Date.now(), type: 'system', text: 'Transcript cleared' }
   ]
   toolLogs.value = []
+  
+  // Reset stats
+  Object.assign(stats, {
+    audioChunks: 0,
+    transcripts: 0,
+    audioResponses: 0,
+    toolCalls: 0
+  })
 }
 </script>
 
@@ -427,8 +981,20 @@ function clearMessages() {
       <div class="gradient-orb orb-3"></div>
     </div>
 
-    <!-- Main container -->
-    <div class="container">
+    <!-- Notifications -->
+    <TransitionGroup name="notification" tag="div" class="notifications">
+      <div 
+        v-for="n in notifications" 
+        :key="n.id"
+        class="notification"
+        :class="n.type"
+      >
+        {{ n.message }}
+      </div>
+    </TransitionGroup>
+
+    <!-- Main container - scrollable on mobile -->
+    <div class="container" :class="{ 'show-advanced': state.showAdvanced }">
       <!-- Header -->
       <header class="header">
         <div class="logo">
@@ -438,50 +1004,84 @@ function clearMessages() {
         <StatusBadge :status="state.status" :text="statusText" />
       </header>
 
+      <!-- Session Recovery Notice -->
+      <div v-if="hasRecoverySession" class="recovery-notice">
+        🔄 Previous session available 
+        <button @click="clearStoredSession">Clear</button>
+      </div>
+
       <!-- iOS Warning -->
       <div v-if="isIOS && state.status === 'disconnected'" class="ios-notice">
         📱 Tap Connect and allow microphone access when prompted
       </div>
 
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button 
+          class="mode-btn" 
+          :class="{ active: state.mode === 'voice' }"
+          @click="switchMode('voice')"
+        >
+          🎙️ Voice
+        </button>
+        <button 
+          class="mode-btn" 
+          :class="{ active: state.mode === 'text' }"
+          @click="switchMode('text')"
+        >
+          ⌨️ Text
+        </button>
+      </div>
+
       <!-- Main Controls -->
       <div class="controls">
-        <!-- Giant Record Button -->
-        <button 
-          class="record-button"
-          :class="{ 
-            recording: state.isRecording,
-            disabled: !canRecord,
-            processing: state.status === 'processing'
-          }"
-          :disabled="!canRecord"
-          @click="toggleRecording"
-        >
-          <div class="record-button-inner">
-            <div class="record-icon" :class="{ active: state.isRecording }">
-              <span v-if="state.status === 'processing'" class="spinner"></span>
-              <span v-else-if="state.isRecording">⏹️</span>
-              <span v-else>🎙️</span>
+        <!-- Voice Mode: Giant Record Button -->
+        <template v-if="state.mode === 'voice'">
+          <button 
+            class="record-button"
+            :class="{ 
+              recording: state.isRecording,
+              disabled: !canRecord,
+              processing: state.status === 'processing'
+            }"
+            :disabled="!canRecord"
+            @click="toggleRecording"
+          >
+            <div class="record-button-inner">
+              <div class="record-icon" :class="{ active: state.isRecording }">
+                <span v-if="state.status === 'processing'" class="spinner"></span>
+                <span v-else-if="state.isRecording">⏹️</span>
+                <span v-else>🎙️</span>
+              </div>
+              <div class="record-text">
+                <template v-if="state.status === 'processing'">Processing...</template>
+                <template v-else-if="state.isRecording">Tap to Stop</template>
+                <template v-else-if="canRecord">Tap to Speak</template>
+                <template v-else>Connect First</template>
+              </div>
             </div>
-            <div class="record-text">
-              <template v-if="state.status === 'processing'">Processing...</template>
-              <template v-else-if="state.isRecording">Tap to Stop</template>
-              <template v-else-if="canRecord">Tap to Speak</template>
-              <template v-else>Connect First</template>
-            </div>
-          </div>
-          
-          <!-- Pulse animation when recording -->
-          <div v-if="state.isRecording" class="pulse-ring"></div>
-          <div v-if="state.isRecording" class="pulse-ring delay-1"></div>
-          <div v-if="state.isRecording" class="pulse-ring delay-2"></div>
-        </button>
+            
+            <!-- Pulse animation when recording -->
+            <div v-if="state.isRecording" class="pulse-ring"></div>
+            <div v-if="state.isRecording" class="pulse-ring delay-1"></div>
+            <div v-if="state.isRecording" class="pulse-ring delay-2"></div>
+          </button>
 
-        <!-- Audio Visualizer -->
-        <AudioVisualizer 
-          :active="state.isRecording" 
-          :level="state.audioLevel"
-          :isPlaying="state.isPlaying"
-        />
+          <!-- Audio Visualizer -->
+          <AudioVisualizer 
+            :active="state.isRecording" 
+            :level="state.audioLevel"
+            :isPlaying="state.isPlaying"
+          />
+        </template>
+
+        <!-- Text Mode: Text Input -->
+        <template v-else>
+          <TextInput 
+            :disabled="!canSendText"
+            @send="sendTextMessage"
+          />
+        </template>
 
         <!-- Connect/Disconnect Buttons -->
         <div class="button-row">
@@ -516,6 +1116,44 @@ function clearMessages() {
       <!-- Tool Logs (collapsed by default) -->
       <ToolLog v-if="toolLogs.length > 0" :logs="toolLogs" />
 
+      <!-- Toggle Advanced Panels -->
+      <button 
+        class="toggle-advanced-btn"
+        @click="state.showAdvanced = !state.showAdvanced"
+      >
+        {{ state.showAdvanced ? '▲ Hide Details' : '▼ Show Call Log & History' }}
+      </button>
+
+      <!-- Advanced Panels (HCP, Call Log, History, Stats) -->
+      <Transition name="slide">
+        <div v-if="state.showAdvanced" class="advanced-panels">
+          <!-- Stats Panel -->
+          <StatsPanel :stats="stats" />
+          
+          <!-- HCP List -->
+          <HcpList />
+          
+          <!-- Call Log Table -->
+          <CallLogTable 
+            :callLog="callLogData"
+            @export="exportCallLogJson"
+            @clear="clearCallLogData"
+            @testSave="testSaveCallLog"
+          />
+          
+          <!-- Call History Table -->
+          <CallHistoryTable 
+            :history="callHistory"
+            :loading="historyLoading"
+            @view="viewCallLog"
+            @download="downloadCallLog"
+            @delete="deleteCallLog"
+            @refresh="loadHistoryFromRedshift"
+            @exportAll="exportAllHistory"
+          />
+        </div>
+      </Transition>
+
       <!-- Session Info -->
       <footer class="session-info">
         <div class="info-row">
@@ -528,6 +1166,14 @@ function clearMessages() {
         </div>
       </footer>
     </div>
+
+    <!-- JSON Modal -->
+    <JsonModal 
+      :visible="modalState.visible"
+      :data="modalState.data"
+      @close="modalState.visible = false"
+      @download="modalState.index !== null && downloadCallLog(modalState.index)"
+    />
   </div>
 </template>
 
@@ -591,7 +1237,6 @@ function clearMessages() {
 
 html, body {
   height: 100%;
-  overflow: hidden;
 }
 
 body {
@@ -601,6 +1246,54 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== NOTIFICATIONS ==================== */
+.notifications {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.notification.success {
+  background: var(--accent-green);
+  color: white;
+}
+
+.notification.error {
+  background: var(--accent-red);
+  color: white;
+}
+
+.notification.info {
+  background: var(--accent-blue);
+  color: white;
+}
+
+.notification-enter-active,
+.notification-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-enter-from {
+  opacity: 0;
+  transform: translateX(50px);
+}
+
+.notification-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
 }
 
 /* ==================== BACKGROUND ==================== */
@@ -656,11 +1349,9 @@ body {
 
 /* ==================== APP LAYOUT ==================== */
 .app {
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport for iOS Safari */
+  min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
   padding: var(--spacing-lg);
   padding-bottom: env(safe-area-inset-bottom, var(--spacing-lg));
   position: relative;
@@ -669,9 +1360,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 560px;
-  height: 100%;
-  max-height: 900px;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
@@ -682,7 +1371,10 @@ body {
   border-radius: var(--radius-xl);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-lg);
-  overflow: hidden;
+}
+
+.container.show-advanced {
+  max-width: 900px;
 }
 
 /* ==================== HEADER ==================== */
@@ -712,7 +1404,29 @@ body {
   background-clip: text;
 }
 
-/* ==================== iOS NOTICE ==================== */
+/* ==================== NOTICES ==================== */
+.recovery-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--accent-green);
+}
+
+.recovery-notice button {
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
 .ios-notice {
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.3);
@@ -721,7 +1435,37 @@ body {
   font-size: 0.875rem;
   color: var(--accent-yellow);
   text-align: center;
-  flex-shrink: 0;
+}
+
+/* ==================== MODE SELECTOR ==================== */
+.mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.mode-btn {
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mode-btn.active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: white;
+  transform: scale(1.02);
 }
 
 /* ==================== CONTROLS ==================== */
@@ -730,14 +1474,13 @@ body {
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-lg);
-  flex-shrink: 0;
 }
 
 /* ==================== RECORD BUTTON ==================== */
 .record-button {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   border: none;
   background: var(--gradient-primary);
@@ -783,7 +1526,7 @@ body {
 }
 
 .record-icon {
-  font-size: 3.5rem;
+  font-size: 3rem;
   line-height: 1;
   transition: transform 0.3s ease;
 }
@@ -798,7 +1541,7 @@ body {
 }
 
 .record-text {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -807,8 +1550,8 @@ body {
 /* Spinner for processing */
 .spinner {
   display: inline-block;
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 4px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
@@ -899,11 +1642,10 @@ body {
 
 /* ==================== TRANSCRIPT SECTION ==================== */
 .transcript-section {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 200px;
+  max-height: 350px;
 }
 
 .section-header {
@@ -937,6 +1679,44 @@ body {
   color: var(--text-secondary);
 }
 
+/* ==================== TOGGLE ADVANCED ==================== */
+.toggle-advanced-btn {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-advanced-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+}
+
+/* ==================== ADVANCED PANELS ==================== */
+.advanced-panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
 /* ==================== SESSION INFO ==================== */
 .session-info {
   display: flex;
@@ -944,7 +1724,6 @@ body {
   gap: var(--spacing-xs);
   padding-top: var(--spacing-md);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
 }
 
 .info-row {
@@ -965,21 +1744,20 @@ body {
 /* ==================== IPAD SPECIFIC ==================== */
 @media (min-width: 768px) and (max-width: 1024px) {
   .container {
-    max-width: 700px;
     padding: var(--spacing-2xl);
   }
 
   .record-button {
-    width: 220px;
-    height: 220px;
+    width: 200px;
+    height: 200px;
   }
 
   .record-icon {
-    font-size: 4.5rem;
+    font-size: 4rem;
   }
 
   .record-text {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 
   .btn {
@@ -1000,8 +1778,8 @@ body {
   }
 
   .record-button {
-    width: 150px;
-    height: 150px;
+    width: 140px;
+    height: 140px;
   }
 
   .record-icon {
@@ -1011,44 +1789,9 @@ body {
   .logo h1 {
     font-size: 1.5rem;
   }
-}
-
-/* ==================== LANDSCAPE MODE ==================== */
-@media (max-height: 600px) and (orientation: landscape) {
-  .container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    max-width: 100%;
-    max-height: 100%;
-    gap: var(--spacing-md);
-  }
-
-  .header {
-    width: 100%;
-  }
-
-  .controls {
-    width: 45%;
-    gap: var(--spacing-sm);
-  }
-
+  
   .transcript-section {
-    width: 50%;
-  }
-
-  .record-button {
-    width: 120px;
-    height: 120px;
-  }
-
-  .record-icon {
-    font-size: 2rem;
-  }
-
-  .button-row {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
+    max-height: 250px;
   }
 }
 </style>
-

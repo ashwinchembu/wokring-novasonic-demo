@@ -1,12 +1,14 @@
 services:
+  # Backend API - serves both API and Vue frontend
   - type: web
-    name: novasonic-demo
+    name: novasonic-api
     runtime: node
     region: oregon
-    plan: starter
+    plan: free  # Change to 'starter' for production
     buildCommand: npm install && cd frontend && npm install && npm run build
     startCommand: npm start
     healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,12 +16,10 @@ services:
         value: 8000
       - key: APP_HOST
         value: 0.0.0.0
-      - key: AWS_REGION
-        sync: false  # Set manually in Render dashboard
-      - key: AWS_ACCESS_KEY_ID
-        sync: false  # Set manually in Render dashboard
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false  # Set manually in Render dashboard
       - key: BEDROCK_MODEL_ID
         value: amazon.nova-sonic-v1:0
+      # Add these in the Render Dashboard after deployment:
+      # - AWS_ACCESS_KEY_ID
+      # - AWS_SECRET_ACCESS_KEY  
+      # - AWS_REGION (us-east-1)
 

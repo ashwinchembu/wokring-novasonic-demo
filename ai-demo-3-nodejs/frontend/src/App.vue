@@ -4,6 +4,7 @@ import StatusBadge from './components/StatusBadge.vue'
 import AudioVisualizer from './components/AudioVisualizer.vue'
 import TranscriptBox from './components/TranscriptBox.vue'
 import ToolLog from './components/ToolLog.vue'
+import config from './config'
 
 // ==================== STATE ====================
 const state = reactive({
@@ -75,7 +76,7 @@ async function connect() {
     state.status = 'connecting'
     addMessage('system', '🔄 Connecting to Nova Sonic...')
 
-    const response = await fetch('/session/start', {
+    const response = await fetch(config.endpoints.sessionStart, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({})
@@ -106,7 +107,7 @@ async function disconnect() {
     cleanup()
 
     if (state.sessionId) {
-      await fetch(`/session/${state.sessionId}`, { method: 'DELETE' })
+      await fetch(config.endpoints.sessionEnd(state.sessionId), { method: 'DELETE' })
     }
 
     state.sessionId = null
@@ -139,7 +140,7 @@ function startEventStream() {
     eventSource.close()
   }
 
-  eventSource = new EventSource(`/events/stream/${state.sessionId}`)
+  eventSource = new EventSource(config.endpoints.eventsStream(state.sessionId))
 
   eventSource.addEventListener('transcript', (e) => {
     const data = JSON.parse(e.data)
@@ -196,7 +197,7 @@ async function toggleRecording() {
 async function startRecording() {
   try {
     // Notify backend
-    const response = await fetch('/audio/start', {
+    const response = await fetch(config.endpoints.audioStart, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId: state.sessionId })
@@ -278,7 +279,7 @@ async function stopRecording() {
     }
 
     // Notify backend
-    await fetch('/audio/end', {
+    await fetch(config.endpoints.audioEnd, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId: state.sessionId })
@@ -308,7 +309,7 @@ async function processAudioChunk(audioData) {
     const base64Audio = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)))
 
     // Send to backend
-    await fetch('/audio/chunk', {
+    await fetch(config.endpoints.audioChunk, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

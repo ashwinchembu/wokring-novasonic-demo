@@ -75,9 +75,13 @@ const config = {
         voiceId: process.env.VOICE_ID || 'matthew',
     },
     cors: {
-        origins: (process.env.CORS_ORIGINS || 'http://localhost:8080,http://localhost:3000')
-            .split(',')
-            .map((s) => s.trim()),
+        // In production without CORS_ORIGINS set, allow all origins for easier deployment
+        // Set CORS_ORIGINS explicitly for production security
+        origins: process.env.CORS_ORIGINS
+            ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim())
+            : process.env.NODE_ENV === 'production'
+                ? true  // Allow all origins in production if not specified
+                : ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:8000'],
     },
     redshift: process.env.REDSHIFT_HOST
         ? {
